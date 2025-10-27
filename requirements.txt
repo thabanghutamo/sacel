@@ -39,6 +39,9 @@ email-validator==2.1.0
 Babel==2.14.0
 Flask-Babel==4.0.0
 
+# REST API
+Flask-RESTful==0.3.10
+
 # Production server
 gunicorn==21.2.0
 
