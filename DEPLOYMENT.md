@@ -6,7 +6,7 @@
 - **Fixed Pillow version** from 10.1.0 to 10.4.0 (Python 3.13 compatible)
 - **Updated Flask** to 3.0.0 for better stability
 - **Upgraded core dependencies** for Python 3.13 compatibility
-- **Removed problematic packages** like `python-magic` and replaced with `python-magic-bin`
+- **Removed problematic packages** like `python-magic` (not needed for basic file handling)
 
 ### 2. Added Deployment Configuration
 
