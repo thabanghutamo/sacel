@@ -22,6 +22,7 @@ class RedisService:
         """Check if Redis is available."""
         try:
             if self.redis:
+                # Set a short timeout to avoid hanging
                 self.redis.ping()
                 self.redis_available = True
                 # Use ASCII-only messages to avoid UnicodeEncodeError on some Windows consoles
@@ -29,6 +30,8 @@ class RedisService:
         except Exception as e:
             self.redis_available = False
             # Avoid printing emoji to prevent encoding errors in Windows console
+            print(f"Redis not available: {str(e)[:100]}")
+            print("Running in fallback mode without Redis caching")
             print(f"Redis not available: {str(e)[:100]} - continuing without Redis")
     
     # Session Management

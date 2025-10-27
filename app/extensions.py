@@ -34,12 +34,29 @@ def init_app(app):
     csrf.init_app(app)
     cache.init_app(app)
     
-    # Initialize Redis
-    redis_client = redis.from_url(app.config['REDIS_URL'])
+    # Initialize Redis with error handling
+    try:
+        redis_client = redis.from_url(
+            app.config['REDIS_URL'],
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            retry_on_timeout=True
+        )
+        # Test connection
+        redis_client.ping()
+        print("Redis connection successful")
+        
+        # Configure session storage to use Redis
+        app.config['SESSION_TYPE'] = 'redis'
+        app.config['SESSION_REDIS'] = redis_client
+    except Exception as e:
+        print(f"Redis connection failed: {str(e)[:100]}")
+        print("Falling back to filesystem session storage")
+        redis_client = None
+        # Fallback to filesystem sessions
+        app.config['SESSION_TYPE'] = 'filesystem'
     
-    # Configure session storage to use Redis
-    app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_REDIS'] = redis_client
+    # Common session configuration
     app.config['SESSION_PERMANENT'] = False
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SESSION_KEY_PREFIX'] = 'sacel:'
