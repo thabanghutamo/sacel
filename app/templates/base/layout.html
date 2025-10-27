@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SACEL - South African Comprehensive Education & Learning{% endblock %}</title>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern Design CSS -->
+    <style>
+        :root {
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --success: #10b981;
+            --white: #ffffff;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--gray-50);
+        }
+        
+        /* Modern card styles */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        /* Modern button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Mobile responsive grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        /* Navigation active state */
+        .nav-item.active {
+            background: var(--primary-50);
+            color: var(--primary-700);
+        }
+    </style>
+    
+    <!-- Tailwind CSS for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- CSRF Token for AJAX requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- Modern Dashboard Layout -->
+    <div class="flex h-screen overflow-hidden bg-gray-50">
+        <!-- Desktop Sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-80">
+                <div class="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
+                    <!-- Logo Section -->
+                    <div class="flex items-center flex-shrink-0 px-6">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-white text-lg"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h1 class="text-xl font-bold text-gray-900">SACEL</h1>
+                            <p class="text-xs text-gray-500">Education Platform</p>
+                        </div>
+                    </div>
+
+                    <!-- User Profile Section -->
+                    <div class="mt-6 flex-shrink-0 px-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-semibold text-lg">
+                                    {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                                </span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-semibold text-gray-900">{{ current_user.first_name }} {{ current_user.last_name }}</h3>
+                                <p class="text-xs text-gray-500 capitalize">{{ current_user.role.value.replace('_', ' ') }}</p>
+                                <div class="flex items-center mt-1">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                    <span class="text-xs text-gray-500 ml-1">Online</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Menu -->
+                    <nav class="mt-8 flex-1 px-4 space-y-1">
+                        <!-- Dashboard -->
+                        <a href="{% if current_user.role.value == 'student' %}{{ url_for('student_portal.dashboard') }}{% elif current_user.role.value == 'teacher' %}{{ url_for('teachers.dashboard') }}{% else %}{{ url_for('admin.dashboard') }}{% endif %}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-home text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Dashboard
+                        </a>
+
+                        {% if current_user.role.value == 'student' %}
+                        <!-- Student Menu Items -->
+                        <a href="{{ url_for('students.assignments') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-book text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            My Assignments
+                        </a>
+                        <a href="{{ url_for('students.progress_dashboard') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-chart-line text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Progress
+                        </a>
+
+                        {% elif current_user.role.value == 'teacher' %}
+                        <!-- Teacher Menu Items -->
+                        <a href="{{ url_for('teachers.create_advanced_assignment') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-plus-circle text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Create Assignment
+                        </a>
+                        <a href="{{ url_for('teachers.grading') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-check-circle text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Grade Assignments
+                        </a>
+                        <a href="{{ url_for('analytics.real_time_dashboard') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-chart-bar text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Analytics
+                        </a>
+
+                        {% else %}
+                        <!-- Admin Menu Items -->
+                        <a href="{{ url_for('admin.users') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-users text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Users
+                        </a>
+                        <a href="{{ url_for('admin.schools') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-school text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Schools
+                        </a>
+                        {% endif %}
+
+                        <!-- Divider -->
+                        <div class="border-t border-gray-200 my-6"></div>
+
+                        <!-- Common Menu Items -->
+                        <a href="{{ url_for('search.search_interface') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-search text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Search
+                        </a>
+                        <a href="{{ url_for('public.language_demo') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:text-gray-900 hover:bg-gray-100 transition-colors nav-item">
+                            <i class="fas fa-globe text-gray-400 group-hover:text-gray-600 mr-3 w-5 h-5"></i>
+                            Languages
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" 
+                           class="group flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors nav-item">
+                            <i class="fas fa-sign-out-alt text-red-500 mr-3 w-5 h-5"></i>
+                            Logout
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu (hidden by default) -->
+        <div class="lg:hidden">
+            <!-- Mobile navigation will go here -->
+        </div>
+
+        <!-- Main content area -->
+        <div class="flex flex-col w-0 flex-1 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow border-b border-gray-200">
+                <div class="flex-1 px-4 flex justify-between sm:px-6 lg:px-8">
+                    <div class="flex-1 flex">
+                        <div class="w-full flex md:ml-0">
+                            <div class="relative w-full text-gray-400 focus-within:text-gray-600">
+                                <h1 class="text-2xl font-semibold text-gray-900 mt-3">
+                                    {% block page_title %}Dashboard{% endblock %}
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ml-4 flex items-center md:ml-6">
+                        <!-- Language Selector -->
+                        <div class="relative mr-4">
+                            <select id="languageSelector" 
+                                    class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onchange="switchLanguage(this.value)">
+                                {% for code, name in get_languages().items() %}
+                                    <option value="{{ code }}" {% if code == current_language() %}selected{% endif %}>
+                                        {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Notifications -->
+                        <button type="button" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <span class="sr-only">View notifications</span>
+                            <i class="fas fa-bell h-6 w-6"></i>
+                        </button>
+
+                        <!-- Profile dropdown -->
+                        <div class="ml-3 relative">
+                            <div>
+                                <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button">
+                                    <span class="sr-only">Open user menu</span>
+                                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-semibold text-sm">
+                                            {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                                        </span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="px-6 pt-4">
+                        {% for category, message in messages %}
+                            <div class="card p-4 mb-4 {% if category == 'error' %}bg-red-50 border-red-200 text-red-700{% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700{% elif category == 'success' %}bg-green-50 border-green-200 text-green-700{% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        {% if category == 'error' %}
+                                            <i class="fas fa-exclamation-circle"></i>
+                                        {% elif category == 'warning' %}
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        {% elif category == 'success' %}
+                                            <i class="fas fa-check-circle"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-3">
+                                        {{ message }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Page content -->
+            <main class="flex-1 relative overflow-y-auto focus:outline-none">
+                <div class="py-6">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        {% if current_user.is_authenticated %}
+                            {% block dashboard_content %}{% endblock %}
+                        {% endif %}
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Modern Public Layout -->
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <!-- Navigation for Public Pages -->
+        <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-white text-lg"></i>
+                        </div>
+                        <div class="ml-3">
+                            <a href="{{ url_for('public.home') }}" class="text-xl font-bold text-gray-900">SACEL</a>
+                            <p class="text-xs text-gray-500">Education Platform</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="hidden md:flex md:items-center md:space-x-8">
+                        <a href="{{ url_for('public.home') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">Home</a>
+                        <a href="{{ url_for('public.schools') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">Schools</a>
+                        <a href="{{ url_for('public.language_demo') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🌍 Languages</a>
+                        <a href="{{ url_for('auth.login') }}" class="text-blue-600 hover:text-blue-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn-primary">Register</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Flash Messages for Public Pages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+                    {% for category, message in messages %}
+                        <div class="card p-4 mb-4 {% if category == 'error' %}bg-red-50 border-red-200 text-red-700{% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700{% elif category == 'success' %}bg-green-50 border-green-200 text-green-700{% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Main Content for Public Pages -->
+        <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% endif %}
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Language switcher
+        function switchLanguage(languageCode) {
+            // Implement language switching logic
+            window.location.href = `/set-language/${languageCode}`;
+        }
+
+        // Profile menu toggle
+        document.getElementById('profileMenuBtn')?.addEventListener('click', function() {
+            // Implement profile menu dropdown
+            console.log('Profile menu clicked');
+        });
+
+        // Settings button
+        document.getElementById('settingsBtn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Implement settings modal or page
+            console.log('Settings clicked');
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

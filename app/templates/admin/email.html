@@ -1,0 +1,272 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Email Configuration - SACEL Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">📧 Email System</h1>
+            <p class="mt-2 text-gray-600">Configure and manage email notifications for the platform</p>
+        </div>
+
+        <!-- Email Stats Card -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">📊 Email Statistics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="totalUsers">-</div>
+                    <div class="text-sm text-gray-600">Total Users</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="studentsCount">-</div>
+                    <div class="text-sm text-gray-600">Students</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="teachersCount">-</div>
+                    <div class="text-sm text-gray-600">Teachers</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="adminsCount">-</div>
+                    <div class="text-sm text-gray-600">Admins</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Configuration Status -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">⚙️ Configuration Status</h2>
+            <div id="emailStatus" class="space-y-4">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <span class="font-medium">Email System</span>
+                    <span id="emailConfigStatus" class="px-3 py-1 rounded-full text-sm">Checking...</span>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <span class="font-medium">SMTP Server</span>
+                    <span id="smtpServer" class="text-gray-600">-</span>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <span class="font-medium">SMTP Port</span>
+                    <span id="smtpPort" class="text-gray-600">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Email Section -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">🧪 Test Email</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="testEmail" class="block text-sm font-medium text-gray-700 mb-2">Test Email Address</label>
+                    <input type="email" id="testEmail" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Enter email address to test">
+                </div>
+                <button onclick="sendTestEmail()" 
+                        class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                    Send Test Email
+                </button>
+                <div id="testResult" class="mt-4 hidden"></div>
+            </div>
+        </div>
+
+        <!-- Send System Announcement -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">📢 Send System Announcement</h2>
+            <form onsubmit="sendAnnouncement(event)" class="space-y-4">
+                <div>
+                    <label for="announcementTitle" class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                    <input type="text" id="announcementTitle" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Announcement title">
+                </div>
+                
+                <div>
+                    <label for="announcementContent" class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                    <textarea id="announcementContent" rows="5" required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Write your announcement here..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="recipientType" class="block text-sm font-medium text-gray-700 mb-2">Recipients</label>
+                        <select id="recipientType" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select recipients</option>
+                            <option value="all">All Users</option>
+                            <option value="students">Students Only</option>
+                            <option value="teachers">Teachers Only</option>
+                            <option value="admins">Admins Only</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                        <select id="priority"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" 
+                        class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">
+                    Send Announcement
+                </button>
+            </form>
+            <div id="announcementResult" class="mt-4 hidden"></div>
+        </div>
+
+        <!-- Email Templates -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">📝 Available Email Templates</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">📚 Assignment Notifications</h3>
+                    <p class="text-sm text-gray-600 mt-1">Notify students about new assignments</p>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">🎯 Grade Notifications</h3>
+                    <p class="text-sm text-gray-600 mt-1">Send grade updates to students</p>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">🎉 Admission Updates</h3>
+                    <p class="text-sm text-gray-600 mt-1">Update applicants on admission status</p>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">🎓 Welcome Emails</h3>
+                    <p class="text-sm text-gray-600 mt-1">Welcome new users to the platform</p>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">📄 Teacher Notifications</h3>
+                    <p class="text-sm text-gray-600 mt-1">Notify teachers about submissions</p>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">⏰ Reminders</h3>
+                    <p class="text-sm text-gray-600 mt-1">Send grading and deadline reminders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load email statistics on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadEmailStats();
+});
+
+async function loadEmailStats() {
+    try {
+        const response = await fetch('/api/email/email-stats');
+        if (response.ok) {
+            const stats = await response.json();
+            
+            // Update stats display
+            document.getElementById('totalUsers').textContent = stats.total_users;
+            document.getElementById('studentsCount').textContent = stats.students;
+            document.getElementById('teachersCount').textContent = stats.teachers;
+            document.getElementById('adminsCount').textContent = stats.admins;
+            
+            // Update configuration status
+            const statusElement = document.getElementById('emailConfigStatus');
+            if (stats.email_configured) {
+                statusElement.textContent = 'Configured';
+                statusElement.className = 'px-3 py-1 rounded-full text-sm bg-green-100 text-green-800';
+            } else {
+                statusElement.textContent = 'Not Configured';
+                statusElement.className = 'px-3 py-1 rounded-full text-sm bg-red-100 text-red-800';
+            }
+            
+            document.getElementById('smtpServer').textContent = stats.smtp_server || 'Not set';
+            document.getElementById('smtpPort').textContent = stats.smtp_port || 'Not set';
+        }
+    } catch (error) {
+        console.error('Failed to load email stats:', error);
+    }
+}
+
+async function sendTestEmail() {
+    const emailInput = document.getElementById('testEmail');
+    const resultDiv = document.getElementById('testResult');
+    
+    if (!emailInput.value) {
+        showResult(resultDiv, 'Please enter an email address', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/email/test-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                test_email: emailInput.value
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showResult(resultDiv, result.message, 'success');
+        } else {
+            showResult(resultDiv, result.error || 'Failed to send test email', 'error');
+        }
+    } catch (error) {
+        showResult(resultDiv, 'Network error occurred', 'error');
+    }
+}
+
+async function sendAnnouncement(event) {
+    event.preventDefault();
+    
+    const title = document.getElementById('announcementTitle').value;
+    const content = document.getElementById('announcementContent').value;
+    const recipientType = document.getElementById('recipientType').value;
+    const priority = document.getElementById('priority').value;
+    const resultDiv = document.getElementById('announcementResult');
+    
+    try {
+        const response = await fetch('/api/email/send-system-announcement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                recipient_type: recipientType,
+                priority: priority
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showResult(resultDiv, result.message, 'success');
+            document.querySelector('form').reset();
+        } else {
+            showResult(resultDiv, result.error || 'Failed to send announcement', 'error');
+        }
+    } catch (error) {
+        showResult(resultDiv, 'Network error occurred', 'error');
+    }
+}
+
+function showResult(element, message, type) {
+    element.className = `mt-4 p-4 rounded-md ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+    element.textContent = message;
+    element.classList.remove('hidden');
+    
+    // Hide after 5 seconds
+    setTimeout(() => {
+        element.classList.add('hidden');
+    }, 5000);
+}
+</script>
+{% endblock %}

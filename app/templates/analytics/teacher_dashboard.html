@@ -1,0 +1,467 @@
+{% extends "base/layout.html" %}
+
+{% block title %}{{ _('Teacher Analytics Dashboard') }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            {{ _('Class Analytics Dashboard') }}
+        </h1>
+        <p class="text-gray-600">
+            {{ _('Monitor your students progress and class performance') }}
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Filter Analytics') }}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label for="subject-filter" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ _('Subject') }}
+                </label>
+                <select id="subject-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">{{ _('All Subjects') }}</option>
+                </select>
+            </div>
+            <div>
+                <label for="grade-filter" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ _('Grade Level') }}
+                </label>
+                <select id="grade-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">{{ _('All Grades') }}</option>
+                    <option value="1">{{ _('Grade 1') }}</option>
+                    <option value="2">{{ _('Grade 2') }}</option>
+                    <option value="3">{{ _('Grade 3') }}</option>
+                    <option value="4">{{ _('Grade 4') }}</option>
+                    <option value="5">{{ _('Grade 5') }}</option>
+                    <option value="6">{{ _('Grade 6') }}</option>
+                    <option value="7">{{ _('Grade 7') }}</option>
+                    <option value="8">{{ _('Grade 8') }}</option>
+                    <option value="9">{{ _('Grade 9') }}</option>
+                    <option value="10">{{ _('Grade 10') }}</option>
+                    <option value="11">{{ _('Grade 11') }}</option>
+                    <option value="12">{{ _('Grade 12') }}</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button id="apply-filters" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {{ _('Apply Filters') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Analytics Content -->
+    <div id="analytics-content" class="hidden">
+        <!-- Class Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Students -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">{{ _('Total Students') }}</p>
+                        <p id="total-students" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Assignments -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">{{ _('Total Assignments') }}</p>
+                        <p id="total-assignments" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Average -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">{{ _('Class Average') }}</p>
+                        <p id="class-average" class="text-2xl font-bold text-gray-900">0%</p>
+                    </div>
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completion Rate -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">{{ _('Completion Rate') }}</p>
+                        <p id="completion-rate" class="text-2xl font-bold text-gray-900">0%</p>
+                    </div>
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Subject Performance Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Subject Breakdown') }}</h3>
+                <div id="subject-chart" class="h-64"></div>
+            </div>
+
+            <!-- Grade Distribution Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Grade Distribution') }}</h3>
+                <div id="grade-distribution-chart" class="h-64"></div>
+            </div>
+        </div>
+
+        <!-- Student Performance Tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Top Performers -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Top Performers') }}</h3>
+                <div id="top-performers" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Students Needing Support -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Students Needing Support') }}</h3>
+                <div id="struggling-students" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Export and Actions -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Actions') }}</h3>
+            <div class="flex space-x-4">
+                <button id="export-csv" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    {{ _('Export to CSV') }}
+                </button>
+                <button id="refresh-data" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {{ _('Refresh Data') }}
+                </button>
+                <button id="clear-cache" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    {{ _('Clear Cache') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <span id="error-text"></span>
+    </div>
+</div>
+
+<!-- Chart.js for data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let subjectChart = null;
+    let gradeChart = null;
+    let currentFilters = {};
+    
+    // Load analytics data
+    loadAnalytics();
+    
+    // Event listeners
+    document.getElementById('apply-filters').addEventListener('click', applyFilters);
+    document.getElementById('refresh-data').addEventListener('click', refreshData);
+    document.getElementById('clear-cache').addEventListener('click', clearCache);
+    document.getElementById('export-csv').addEventListener('click', exportCSV);
+    
+    async function loadAnalytics() {
+        try {
+            const params = new URLSearchParams(currentFilters);
+            const response = await fetch(`/api/analytics/class?${params}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to load analytics data');
+            }
+            
+            const data = await response.json();
+            updateAnalyticsUI(data.data);
+            
+            // Hide loading and show content
+            document.getElementById('loading-spinner').classList.add('hidden');
+            document.getElementById('analytics-content').classList.remove('hidden');
+            
+        } catch (error) {
+            console.error('Error loading analytics:', error);
+            showError('Failed to load analytics data. Please try again later.');
+        }
+    }
+    
+    function updateAnalyticsUI(data) {
+        // Update overview cards
+        document.getElementById('total-students').textContent = data.total_students;
+        document.getElementById('total-assignments').textContent = data.total_assignments;
+        document.getElementById('class-average').textContent = data.average_class_score + '%';
+        document.getElementById('completion-rate').textContent = data.completion_rate + '%';
+        
+        // Update charts
+        updateSubjectChart(data.subject_breakdown);
+        updateGradeDistributionChart(data.grade_distribution);
+        
+        // Update student lists
+        updateTopPerformers(data.top_performers);
+        updateStrugglingStudents(data.struggling_students);
+    }
+    
+    function updateSubjectChart(subjectData) {
+        const ctx = document.getElementById('subject-chart').getContext('2d');
+        
+        const subjects = Object.keys(subjectData);
+        const averages = subjects.map(subject => subjectData[subject].average_score);
+        const completions = subjects.map(subject => subjectData[subject].completion_rate);
+        
+        if (subjectChart) {
+            subjectChart.destroy();
+        }
+        
+        subjectChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: subjects,
+                datasets: [
+                    {
+                        label: '{{ _("Average Score") }}',
+                        data: averages,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: '{{ _("Completion Rate") }}',
+                        data: completions,
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateGradeDistributionChart(gradeData) {
+        const ctx = document.getElementById('grade-distribution-chart').getContext('2d');
+        
+        const grades = Object.keys(gradeData);
+        const counts = grades.map(grade => gradeData[grade].count);
+        const colors = [
+            'rgba(34, 197, 94, 0.7)',   // A - Green
+            'rgba(59, 130, 246, 0.7)',  // B - Blue
+            'rgba(251, 191, 36, 0.7)',  // C - Yellow
+            'rgba(249, 115, 22, 0.7)',  // D - Orange
+            'rgba(239, 68, 68, 0.7)'    // F - Red
+        ];
+        
+        if (gradeChart) {
+            gradeChart.destroy();
+        }
+        
+        gradeChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: grades,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: colors.slice(0, grades.length),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const grade = grades[context.dataIndex];
+                                const data = gradeData[grade];
+                                return `${grade}: ${data.count} students (${data.percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateTopPerformers(performers) {
+        const container = document.getElementById('top-performers');
+        
+        if (performers.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center">{{ _("No data available") }}</p>';
+            return;
+        }
+        
+        container.innerHTML = performers.map((student, index) => `
+            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <span class="text-green-800 font-bold">${index + 1}</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800">${student.student_name}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold text-green-600">${student.average}%</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function updateStrugglingStudents(students) {
+        const container = document.getElementById('struggling-students');
+        
+        if (students.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center">{{ _("All students performing well!") }}</p>';
+            return;
+        }
+        
+        container.innerHTML = students.map(student => `
+            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800">${student.student_name}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold text-red-600">${student.average}%</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function applyFilters() {
+        const subject = document.getElementById('subject-filter').value;
+        const gradeLevel = document.getElementById('grade-filter').value;
+        
+        currentFilters = {};
+        if (subject) currentFilters.subject = subject;
+        if (gradeLevel) currentFilters.grade_level = gradeLevel;
+        
+        // Show loading and reload data
+        document.getElementById('analytics-content').classList.add('hidden');
+        document.getElementById('loading-spinner').classList.remove('hidden');
+        
+        loadAnalytics();
+    }
+    
+    function refreshData() {
+        // Show loading and reload data
+        document.getElementById('analytics-content').classList.add('hidden');
+        document.getElementById('loading-spinner').classList.remove('hidden');
+        
+        loadAnalytics();
+    }
+    
+    async function clearCache() {
+        try {
+            const response = await fetch('/api/analytics/cache', {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                alert('{{ _("Cache cleared successfully") }}');
+                refreshData();
+            } else {
+                throw new Error('Failed to clear cache');
+            }
+        } catch (error) {
+            console.error('Error clearing cache:', error);
+            alert('{{ _("Failed to clear cache") }}');
+        }
+    }
+    
+    function exportCSV() {
+        // This would typically trigger a CSV download
+        alert('{{ _("CSV export feature coming soon") }}');
+    }
+    
+    function showError(message) {
+        document.getElementById('loading-spinner').classList.add('hidden');
+        document.getElementById('error-text').textContent = message;
+        document.getElementById('error-message').classList.remove('hidden');
+    }
+});
+</script>
+{% endblock %}

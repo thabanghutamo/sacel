@@ -1,0 +1,394 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Grade Submissions - SACEL{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Grade Submissions</h1>
+                        <p class="text-gray-600 mt-1">Review and grade student submissions</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="{{ url_for('teachers.dashboard') }}" 
+                           class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('teachers.assignments') }}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-folder-open mr-2"></i>Manage Assignments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if submissions %}
+        <!-- Submissions List -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    Pending Submissions ({{ submissions|length }})
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Student
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assignment
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Subject
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Submitted
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for submission in submissions %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <span class="text-sm font-medium text-blue-800">
+                                                {{ submission.student.first_name[0] }}{{ submission.student.last_name[0] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ submission.student.full_name }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ submission.student.email }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ submission.assignment.title }}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Grade {{ submission.assignment.grade_level }} • Max: {{ submission.assignment.max_score }} pts
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ submission.assignment.subject }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') if submission.submitted_at else 'Not submitted' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if submission.grade is not none %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Graded ({{ submission.grade }}/{{ submission.assignment.max_score }})
+                                </span>
+                                {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Pending Review
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end space-x-2">
+                                    <button onclick="viewSubmission({{ submission.id }})" 
+                                            class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded transition-colors">
+                                        <i class="fas fa-eye mr-1"></i>View
+                                    </button>
+                                    {% if submission.grade is none %}
+                                    <button onclick="gradeSubmission({{ submission.id }})" 
+                                            class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded transition-colors">
+                                        <i class="fas fa-check-square mr-1"></i>Grade
+                                    </button>
+                                    {% else %}
+                                    <button onclick="editGrade({{ submission.id }})" 
+                                            class="text-orange-600 hover:text-orange-900 bg-orange-50 hover:bg-orange-100 px-3 py-1 rounded transition-colors">
+                                        <i class="fas fa-edit mr-1"></i>Edit Grade
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="mt-6 bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Bulk Actions</h3>
+            <div class="flex space-x-4">
+                <button onclick="bulkGrade()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-clipboard-check mr-2"></i>Grade Selected
+                </button>
+                <button onclick="exportGrades()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-download mr-2"></i>Export Grades
+                </button>
+                <button onclick="sendFeedback()" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-comment mr-2"></i>Send Feedback
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-12 text-center">
+                <div class="mx-auto h-24 w-24 text-gray-400 mb-4">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" 
+                              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No submissions to grade</h3>
+                <p class="text-gray-500 mb-6">There are currently no ungraded submissions for your assignments.</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="{{ url_for('teachers.assignments') }}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-folder-open mr-2"></i>View All Assignments
+                    </a>
+                    <a href="{{ url_for('teachers.create_assignment') }}" 
+                       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Create New Assignment
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Grade Submission Modal -->
+<div id="gradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Grade Submission</h3>
+                <button onclick="closeGradeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="p-6">
+            <form id="gradeForm">
+                <input type="hidden" id="submissionId" name="submission_id">
+                
+                <!-- Student Info -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-900 mb-2">Student Information</h4>
+                    <div id="studentInfo" class="bg-gray-50 p-4 rounded-lg">
+                        <!-- Student details will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Assignment Info -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-900 mb-2">Assignment</h4>
+                    <div id="assignmentInfo" class="bg-gray-50 p-4 rounded-lg">
+                        <!-- Assignment details will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Submission Content -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-900 mb-2">Submission</h4>
+                    <div id="submissionContent" class="bg-gray-50 p-4 rounded-lg min-h-32">
+                        <!-- Submission content will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Grade Input -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label for="grade" class="block text-sm font-medium text-gray-700 mb-2">
+                            Grade (out of <span id="maxScore">100</span>)
+                        </label>
+                        <input type="number" 
+                               id="grade" 
+                               name="grade" 
+                               min="0" 
+                               step="0.5"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Enter grade">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade Percentage</label>
+                        <div id="gradePercentage" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                            --%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div class="mb-6">
+                    <label for="feedback" class="block text-sm font-medium text-gray-700 mb-2">
+                        Feedback (Optional)
+                    </label>
+                    <textarea id="feedback" 
+                              name="feedback" 
+                              rows="4"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Provide feedback to the student..."></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="closeGradeModal()" 
+                            class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>Save Grade
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gradeModal = document.getElementById('gradeModal');
+    const gradeForm = document.getElementById('gradeForm');
+    const gradeInput = document.getElementById('grade');
+    const gradePercentage = document.getElementById('gradePercentage');
+
+    // Calculate percentage when grade changes
+    gradeInput.addEventListener('input', function() {
+        const maxScore = parseInt(document.getElementById('maxScore').textContent);
+        const grade = parseFloat(this.value);
+        
+        if (grade && maxScore) {
+            const percentage = ((grade / maxScore) * 100).toFixed(1);
+            gradePercentage.textContent = percentage + '%';
+            
+            // Color code the percentage
+            if (percentage >= 80) {
+                gradePercentage.className = gradePercentage.className.replace(/text-\w+-\d+/, 'text-green-700');
+            } else if (percentage >= 60) {
+                gradePercentage.className = gradePercentage.className.replace(/text-\w+-\d+/, 'text-yellow-700');
+            } else {
+                gradePercentage.className = gradePercentage.className.replace(/text-\w+-\d+/, 'text-red-700');
+            }
+        } else {
+            gradePercentage.textContent = '--%';
+        }
+    });
+
+    // Handle form submission
+    gradeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitGrade();
+    });
+});
+
+function viewSubmission(submissionId) {
+    // TODO: Implement view submission functionality
+    alert(`View submission ${submissionId} - Feature coming soon!`);
+}
+
+function gradeSubmission(submissionId) {
+    // Show the grading modal
+    document.getElementById('submissionId').value = submissionId;
+    document.getElementById('gradeModal').classList.remove('hidden');
+    document.getElementById('gradeModal').classList.add('flex');
+    
+    // TODO: Load submission details
+    loadSubmissionDetails(submissionId);
+}
+
+function editGrade(submissionId) {
+    // TODO: Load existing grade for editing
+    gradeSubmission(submissionId);
+}
+
+function closeGradeModal() {
+    document.getElementById('gradeModal').classList.add('hidden');
+    document.getElementById('gradeModal').classList.remove('flex');
+    document.getElementById('gradeForm').reset();
+}
+
+function loadSubmissionDetails(submissionId) {
+    // TODO: Fetch submission details from API
+    // For now, show placeholder content
+    document.getElementById('studentInfo').innerHTML = `
+        <div class="flex items-center">
+            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                <span class="text-sm font-medium text-blue-800">JD</span>
+            </div>
+            <div>
+                <div class="text-sm font-medium text-gray-900">John Doe</div>
+                <div class="text-sm text-gray-500">john.doe@student.co.za</div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('assignmentInfo').innerHTML = `
+        <div>
+            <div class="text-sm font-medium text-gray-900">Loading assignment details...</div>
+            <div class="text-sm text-gray-500">Please wait...</div>
+        </div>
+    `;
+    
+    document.getElementById('submissionContent').innerHTML = `
+        <div class="text-gray-500">Loading submission content...</div>
+    `;
+}
+
+function submitGrade() {
+    const formData = new FormData(document.getElementById('gradeForm'));
+    const data = {
+        submission_id: formData.get('submission_id'),
+        grade: parseFloat(formData.get('grade')),
+        feedback: formData.get('feedback')
+    };
+
+    // TODO: Submit grade to API
+    console.log('Submitting grade:', data);
+    alert('Grade submitted successfully! (Feature in development)');
+    closeGradeModal();
+    
+    // Refresh the page to show updated status
+    window.location.reload();
+}
+
+function bulkGrade() {
+    // TODO: Implement bulk grading
+    alert('Bulk grading feature coming soon!');
+}
+
+function exportGrades() {
+    // TODO: Implement grade export
+    alert('Grade export feature coming soon!');
+}
+
+function sendFeedback() {
+    // TODO: Implement feedback system
+    alert('Feedback system coming soon!');
+}
+</script>
+{% endblock %}

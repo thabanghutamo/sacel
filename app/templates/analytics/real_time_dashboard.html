@@ -1,0 +1,611 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Real-time Analytics Dashboard - SACEL{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js for data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<!-- Chart.js plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-4 sm:py-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">📊 Real-time Analytics</h1>
+                        <p class="mt-1 text-sm text-gray-600">Live dashboard with real-time insights</p>
+                    </div>
+                    <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                        <button id="refreshDashboard" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            🔄 Refresh Data
+                        </button>
+                        <button id="toggleAutoRefresh" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            ⏱️ Auto-Refresh: ON
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Real-time Status Bar -->
+        <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="ml-2 text-sm text-gray-600">Live Data</span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        Last updated: <span id="lastUpdated">--</span>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-0">
+                    <span class="text-sm text-gray-500">Auto-refresh in <span id="refreshCountdown">30</span>s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="p-4 sm:p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-bold">👥</span>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                                <dd class="text-lg sm:text-xl font-semibold text-gray-900" id="totalUsers">--</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="p-4 sm:p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-bold">🏫</span>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-500 truncate">Active Schools</dt>
+                                <dd class="text-lg sm:text-xl font-semibold text-gray-900" id="activeSchools">--</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="p-4 sm:p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-bold">📚</span>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-500 truncate">Assignments</dt>
+                                <dd class="text-lg sm:text-xl font-semibold text-gray-900" id="totalAssignments">--</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="p-4 sm:p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-bold">📈</span>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-500 truncate">Growth Rate</dt>
+                                <dd class="text-lg sm:text-xl font-semibold text-gray-900" id="growthRate">--</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- User Growth Chart -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">User Growth Trends</h3>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="h-64">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Assignment Completion Chart -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Assignment Completion</h3>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="h-64">
+                    <canvas id="assignmentCompletionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Performance Trends Chart -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Performance Trends</h3>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="h-64">
+                    <canvas id="performanceTrendsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Subject Distribution Chart -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Subject Distribution</h3>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="h-64">
+                    <canvas id="subjectDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.role.value == 'system_admin' %}
+        <!-- School Comparison (System Admin Only) -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">School Performance Comparison</h3>
+                <button class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="h-96">
+                <canvas id="schoolComparisonChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Real-time Activity Feed -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">📡 Real-time Activity Feed</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Live
+                </span>
+            </div>
+            <div id="activityFeed" class="space-y-3 max-h-96 overflow-y-auto">
+                <!-- Activity items will be loaded here -->
+                <div class="text-center py-8 text-gray-500">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    Loading real-time activity...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <span class="text-gray-700">Updating dashboard...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dashboard configuration
+const REFRESH_INTERVAL = 30000; // 30 seconds
+const API_BASE = '/api/analytics';
+
+// Chart instances
+let charts = {};
+let autoRefreshEnabled = true;
+let refreshTimer;
+let countdownTimer;
+let countdownSeconds = 30;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadDashboardData();
+    startAutoRefresh();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // Refresh button
+    document.getElementById('refreshDashboard').addEventListener('click', function() {
+        loadDashboardData();
+    });
+    
+    // Auto-refresh toggle
+    document.getElementById('toggleAutoRefresh').addEventListener('click', function() {
+        toggleAutoRefresh();
+    });
+}
+
+function initializeCharts() {
+    // User Growth Chart (Line Chart)
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    charts.userGrowth = new Chart(userGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Assignment Completion Chart (Doughnut Chart)
+    const assignmentCtx = document.getElementById('assignmentCompletionChart').getContext('2d');
+    charts.assignmentCompletion = new Chart(assignmentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Performance Trends Chart (Area Chart)
+    const performanceCtx = document.getElementById('performanceTrendsChart').getContext('2d');
+    charts.performanceTrends = new Chart(performanceCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+    
+    // Subject Distribution Chart (Pie Chart)
+    const subjectCtx = document.getElementById('subjectDistributionChart').getContext('2d');
+    charts.subjectDistribution = new Chart(subjectCtx, {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // School Comparison Chart (Bar Chart) - System Admin Only
+    const schoolComparisonElement = document.getElementById('schoolComparisonChart');
+    if (schoolComparisonElement) {
+        const schoolCtx = schoolComparisonElement.getContext('2d');
+        charts.schoolComparison = new Chart(schoolCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+async function loadDashboardData() {
+    showLoading();
+    
+    try {
+        // Load dashboard summary
+        const summaryResponse = await fetch(`${API_BASE}/dashboard-summary`);
+        const summaryData = await summaryResponse.json();
+        
+        if (summaryData.success) {
+            updateQuickStats(summaryData.data);
+        }
+        
+        // Load chart data
+        await Promise.all([
+            loadChartData('user_growth'),
+            loadChartData('assignment_completion'),
+            loadChartData('performance_trends'),
+            loadChartData('subject_distribution'),
+            {{ 'loadChartData("school_comparison"),' if current_user.role.value == 'system_admin' else '' }}
+        ].filter(Boolean));
+        
+        // Load real-time activity
+        await loadRealTimeActivity();
+        
+        // Update last updated timestamp
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showNotification('Failed to load dashboard data', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadChartData(chartType) {
+    try {
+        const response = await fetch(`${API_BASE}/chart-data/${chartType}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateChart(chartType, data.data);
+        }
+    } catch (error) {
+        console.error(`Error loading ${chartType} chart:`, error);
+    }
+}
+
+function updateChart(chartType, data) {
+    const chartMap = {
+        'user_growth': 'userGrowth',
+        'assignment_completion': 'assignmentCompletion',
+        'performance_trends': 'performanceTrends',
+        'subject_distribution': 'subjectDistribution',
+        'school_comparison': 'schoolComparison'
+    };
+    
+    const chartInstance = charts[chartMap[chartType]];
+    if (chartInstance) {
+        chartInstance.data = data;
+        chartInstance.update('active');
+    }
+}
+
+function updateQuickStats(data) {
+    // Extract stats from the data based on user role
+    let totalUsers = 0;
+    let activeSchools = 0;
+    let totalAssignments = 0;
+    let growthRate = 0;
+    
+    if (data.platform_overview) {
+        totalUsers = data.platform_overview.user_statistics?.total_users || 0;
+        activeSchools = data.platform_overview.school_statistics?.active_schools || 0;
+        totalAssignments = data.platform_overview.school_statistics?.total_assignments || 0;
+        growthRate = data.platform_overview.activity_metrics?.platform_growth_rate || 0;
+    } else if (data.student_performance) {
+        totalUsers = data.student_performance.total_students || 0;
+    }
+    
+    // Update DOM elements
+    document.getElementById('totalUsers').textContent = totalUsers.toLocaleString();
+    document.getElementById('activeSchools').textContent = activeSchools.toLocaleString();
+    document.getElementById('totalAssignments').textContent = totalAssignments.toLocaleString();
+    document.getElementById('growthRate').textContent = `${growthRate}%`;
+}
+
+async function loadRealTimeActivity() {
+    try {
+        const response = await fetch(`${API_BASE}/real-time-activity`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateActivityFeed(data.data.recent_activity || []);
+        }
+    } catch (error) {
+        console.error('Error loading real-time activity:', error);
+        document.getElementById('activityFeed').innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                Failed to load activity feed
+            </div>
+        `;
+    }
+}
+
+function updateActivityFeed(activities) {
+    const feedContainer = document.getElementById('activityFeed');
+    
+    if (activities.length === 0) {
+        feedContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                No recent activity
+            </div>
+        `;
+        return;
+    }
+    
+    const activityHTML = activities.map(activity => {
+        const icon = activity.type === 'user_registration' ? '👤' : '📚';
+        const timeAgo = getTimeAgo(new Date(activity.timestamp));
+        
+        return `
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span class="text-sm">${icon}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900">
+                        ${formatActivityMessage(activity)}
+                    </p>
+                    <p class="text-xs text-gray-500">${timeAgo}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    feedContainer.innerHTML = activityHTML;
+}
+
+function formatActivityMessage(activity) {
+    if (activity.type === 'user_registration') {
+        return `New ${activity.data.role} registered: ${activity.data.user_name}`;
+    } else if (activity.type === 'assignment_created') {
+        return `Assignment created: "${activity.data.title}" in ${activity.data.subject}`;
+    }
+    return 'Unknown activity';
+}
+
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+}
+
+function startAutoRefresh() {
+    if (autoRefreshEnabled) {
+        // Start refresh timer
+        refreshTimer = setTimeout(() => {
+            loadDashboardData();
+            startAutoRefresh(); // Restart timer
+        }, REFRESH_INTERVAL);
+        
+        // Start countdown
+        countdownSeconds = 30;
+        startCountdown();
+    }
+}
+
+function startCountdown() {
+    countdownTimer = setInterval(() => {
+        countdownSeconds--;
+        document.getElementById('refreshCountdown').textContent = countdownSeconds;
+        
+        if (countdownSeconds <= 0) {
+            clearInterval(countdownTimer);
+        }
+    }, 1000);
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    const button = document.getElementById('toggleAutoRefresh');
+    
+    if (autoRefreshEnabled) {
+        button.innerHTML = '⏱️ Auto-Refresh: ON';
+        button.className = button.className.replace('bg-gray-600 hover:bg-gray-700', 'bg-blue-600 hover:bg-blue-700');
+        startAutoRefresh();
+    } else {
+        button.innerHTML = '⏱️ Auto-Refresh: OFF';
+        button.className = button.className.replace('bg-blue-600 hover:bg-blue-700', 'bg-gray-600 hover:bg-gray-700');
+        clearTimeout(refreshTimer);
+        clearInterval(countdownTimer);
+        document.getElementById('refreshCountdown').textContent = '--';
+    }
+}
+
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+function showNotification(message, type = 'info') {
+    // Use existing notification system
+    if (window.SACEL && window.SACEL.showNotification) {
+        window.SACEL.showNotification(message, type);
+    } else {
+        console.log(`${type}: ${message}`);
+    }
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    clearTimeout(refreshTimer);
+    clearInterval(countdownTimer);
+});
+</script>
+{% endblock %}

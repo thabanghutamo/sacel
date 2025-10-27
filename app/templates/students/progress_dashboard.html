@@ -1,0 +1,520 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Student Progress Dashboard - SACEL{% endblock %}
+
+{% block page_title %}Progress Dashboard{% endblock %}
+{% block page_subtitle %}Track your learning progress and performance{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+<style>
+    .progress-card {
+        @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+    }
+    .metric-card {
+        @apply bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200;
+    }
+    .trend-up {
+        @apply text-green-600;
+    }
+    .trend-down {
+        @apply text-red-600;
+    }
+    .trend-stable {
+        @apply text-yellow-600;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    .activity-item {
+        @apply border-l-4 pl-4 py-2 mb-3;
+    }
+    .activity-item.graded {
+        @apply border-green-400 bg-green-50;
+    }
+    .activity-item.pending {
+        @apply border-yellow-400 bg-yellow-50;
+    }
+    .activity-item.draft {
+        @apply border-gray-400 bg-gray-50;
+    }
+    .recommendation-card {
+        @apply border-l-4 p-4 mb-4 rounded-r-lg;
+    }
+    .recommendation-high {
+        @apply border-red-400 bg-red-50;
+    }
+    .recommendation-medium {
+        @apply border-yellow-400 bg-yellow-50;
+    }
+    .recommendation-low {
+        @apply border-blue-400 bg-blue-50;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Debug Information -->
+<div class="content-debug mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-2">Progress Dashboard Debug</h2>
+    <p class="text-gray-600">Student ID: {{ student_id if student_id else 'Not provided' }}</p>
+    <p class="text-gray-600">Current User: {{ current_user.first_name }} {{ current_user.last_name }}</p>
+    <p class="text-gray-600">User Role: {{ current_user.role.value if current_user.role else 'No role' }}</p>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Student Progress Dashboard</h1>
+        <p class="text-gray-600">Comprehensive academic progress tracking and analytics</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="mt-2 text-gray-600">Loading progress data...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="dashboard-content" class="hidden">
+        <!-- Student Info Section -->
+        <div class="progress-card mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">Student Information</h2>
+                <div class="flex space-x-2">
+                    <select id="timeframe-selector" class="px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="1month">Last Month</option>
+                        <option value="3months">Last 3 Months</option>
+                        <option value="6months" selected>Last 6 Months</option>
+                        <option value="1year">Last Year</option>
+                    </select>
+                    <button id="export-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Export Report
+                    </button>
+                </div>
+            </div>
+            <div id="student-info" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Student info will be populated here -->
+            </div>
+        </div>
+
+        <!-- Academic Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Average Grade</p>
+                        <p id="avg-grade" class="text-2xl font-bold text-blue-600">--</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Completion Rate</p>
+                        <p id="completion-rate" class="text-2xl font-bold text-green-600">--%</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Assignments</p>
+                        <p id="total-assignments" class="text-2xl font-bold text-purple-600">--</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">On-Time Rate</p>
+                        <p id="ontime-rate" class="text-2xl font-bold text-indigo-600">--%</p>
+                    </div>
+                    <div class="bg-indigo-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Grade Timeline Chart -->
+            <div class="progress-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Grade Timeline</h3>
+                <div class="chart-container">
+                    <canvas id="gradeTimelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Subject Performance Chart -->
+            <div class="progress-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Subject Performance</h3>
+                <div class="chart-container">
+                    <canvas id="subjectPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Trends -->
+        <div class="progress-card mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Performance Trends</h3>
+            <div id="trends-content" class="space-y-4">
+                <!-- Trends will be populated here -->
+            </div>
+        </div>
+
+        <!-- Recent Activities and Recommendations -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Recent Activities -->
+            <div class="progress-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
+                <div id="recent-activities" class="space-y-3 max-h-96 overflow-y-auto">
+                    <!-- Activities will be populated here -->
+                </div>
+            </div>
+
+            <!-- Learning Recommendations -->
+            <div class="progress-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Learning Recommendations</h3>
+                <div id="recommendations" class="space-y-3 max-h-96 overflow-y-auto">
+                    <!-- Recommendations will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Peer Comparison -->
+        <div class="progress-card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Peer Comparison</h3>
+            <div id="peer-comparison" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Peer comparison will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden text-center py-12">
+        <div class="text-red-600 mb-4">
+            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Unable to Load Progress Data</h3>
+        <p class="text-gray-600 mb-4">There was an error loading your progress information.</p>
+        <button id="retry-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Try Again
+        </button>
+    </div>
+</div>
+
+<script>
+class StudentProgressDashboard {
+    constructor() {
+        this.studentId = this.getStudentId();
+        this.charts = {};
+        this.refreshInterval = null;
+        this.init();
+    }
+
+    getStudentId() {
+        // Get student ID from URL, data attribute, or current user
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('student_id') || document.body.dataset.studentId;
+    }
+
+    async init() {
+        this.showLoading();
+        await this.loadDashboardData();
+        this.setupEventListeners();
+        this.startAutoRefresh();
+    }
+
+    showLoading() {
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('dashboard-content').classList.add('hidden');
+        document.getElementById('error-state').classList.add('hidden');
+    }
+
+    showError() {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('dashboard-content').classList.add('hidden');
+        document.getElementById('error-state').classList.remove('hidden');
+    }
+
+    showDashboard() {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-state').classList.add('hidden');
+        document.getElementById('dashboard-content').classList.remove('hidden');
+    }
+
+    async loadDashboardData() {
+        try {
+            const [summary, chartData, activities, recommendations, comparison] = await Promise.all([
+                this.fetchData(`/api/student-progress/dashboard-summary/${this.studentId}`),
+                this.fetchData(`/api/student-progress/chart-data/${this.studentId}?type=grade_timeline`),
+                this.fetchData(`/api/student-progress/recent-activities/${this.studentId}`),
+                this.fetchData(`/api/student-progress/recommendations/${this.studentId}`),
+                this.fetchData(`/api/student-progress/peer-comparison/${this.studentId}`)
+            ]);
+
+            this.populateStudentInfo(summary.basic_info);
+            this.populateMetrics(summary.academic_summary, summary.submission_stats);
+            this.loadCharts();
+            this.populateActivities(activities.activities);
+            this.populateRecommendations(recommendations.recommendations);
+            this.populatePeerComparison(comparison);
+
+            this.showDashboard();
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            this.showError();
+        }
+    }
+
+    async fetchData(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    }
+
+    populateStudentInfo(info) {
+        const container = document.getElementById('student-info');
+        container.innerHTML = `
+            <div>
+                <p class="text-sm text-gray-600">Student Name</p>
+                <p class="font-semibold">${info.name || 'Unknown'}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">School</p>
+                <p class="font-semibold">${info.school || 'Unknown'}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Student ID</p>
+                <p class="font-semibold">${info.student_id || 'Unknown'}</p>
+            </div>
+        `;
+    }
+
+    populateMetrics(academic, submission) {
+        document.getElementById('avg-grade').textContent = academic.average_grade || '--';
+        document.getElementById('completion-rate').textContent = `${academic.completion_rate || 0}%`;
+        document.getElementById('total-assignments').textContent = academic.total_assignments || '--';
+        document.getElementById('ontime-rate').textContent = `${submission.on_time_rate || 0}%`;
+    }
+
+    async loadCharts() {
+        // Load grade timeline chart
+        const timelineData = await this.fetchData(`/api/student-progress/chart-data/${this.studentId}?type=grade_timeline`);
+        this.createGradeTimelineChart(timelineData.data);
+
+        // Load subject performance chart
+        const subjectData = await this.fetchData(`/api/student-progress/chart-data/${this.studentId}?type=subject_performance`);
+        this.createSubjectPerformanceChart(subjectData.data);
+    }
+
+    createGradeTimelineChart(data) {
+        const ctx = document.getElementById('gradeTimelineChart').getContext('2d');
+        this.charts.timeline = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    createSubjectPerformanceChart(data) {
+        const ctx = document.getElementById('subjectPerformanceChart').getContext('2d');
+        this.charts.subject = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    populateActivities(activities) {
+        const container = document.getElementById('recent-activities');
+        if (!activities || activities.length === 0) {
+            container.innerHTML = '<p class="text-gray-500">No recent activities</p>';
+            return;
+        }
+
+        container.innerHTML = activities.map(activity => `
+            <div class="activity-item ${activity.status}">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-medium">${activity.title}</h4>
+                        <p class="text-sm text-gray-600">${activity.description}</p>
+                        <p class="text-xs text-gray-500">${activity.subject} • ${new Date(activity.date).toLocaleDateString()}</p>
+                    </div>
+                    ${activity.is_late ? '<span class="text-red-500 text-xs">Late</span>' : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    populateRecommendations(recommendations) {
+        const container = document.getElementById('recommendations');
+        if (!recommendations || recommendations.length === 0) {
+            container.innerHTML = '<p class="text-gray-500">No recommendations available</p>';
+            return;
+        }
+
+        container.innerHTML = recommendations.map(rec => `
+            <div class="recommendation-card recommendation-${rec.priority}">
+                <h4 class="font-medium mb-2">${rec.title}</h4>
+                <p class="text-sm text-gray-600 mb-2">${rec.description}</p>
+                <ul class="text-xs text-gray-600 space-y-1">
+                    ${rec.action_items.map(item => `<li>• ${item}</li>`).join('')}
+                </ul>
+            </div>
+        `).join('');
+    }
+
+    populatePeerComparison(comparison) {
+        const container = document.getElementById('peer-comparison');
+        
+        if (comparison.error) {
+            container.innerHTML = '<p class="text-gray-500 col-span-3">Peer comparison data not available</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="text-center">
+                <p class="text-sm text-gray-600">Your Average</p>
+                <p class="text-2xl font-bold text-blue-600">${comparison.student_average}</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-600">Class Average</p>
+                <p class="text-2xl font-bold text-gray-600">${comparison.peer_group_average}</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-600">Your Percentile</p>
+                <p class="text-2xl font-bold text-green-600">${comparison.percentile}%</p>
+            </div>
+        `;
+    }
+
+    setupEventListeners() {
+        // Timeframe selector
+        document.getElementById('timeframe-selector').addEventListener('change', async (e) => {
+            await this.refreshCharts(e.target.value);
+        });
+
+        // Export button
+        document.getElementById('export-btn').addEventListener('click', () => {
+            this.exportReport();
+        });
+
+        // Retry button
+        document.getElementById('retry-btn').addEventListener('click', () => {
+            this.loadDashboardData();
+        });
+    }
+
+    async refreshCharts(timeframe) {
+        try {
+            const timelineData = await this.fetchData(`/api/student-progress/chart-data/${this.studentId}?type=grade_timeline&timeframe=${timeframe}`);
+            
+            this.charts.timeline.data = timelineData.data;
+            this.charts.timeline.update();
+        } catch (error) {
+            console.error('Error refreshing charts:', error);
+        }
+    }
+
+    async exportReport() {
+        try {
+            const response = await fetch(`/api/student-progress/export/${this.studentId}`);
+            const data = await response.blob();
+            
+            const url = window.URL.createObjectURL(data);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `student_progress_report_${this.studentId}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error exporting report:', error);
+            alert('Failed to export report. Please try again.');
+        }
+    }
+
+    startAutoRefresh() {
+        // Refresh dashboard every 5 minutes
+        this.refreshInterval = setInterval(() => {
+            this.loadDashboardData();
+        }, 5 * 60 * 1000);
+    }
+
+    destroy() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        Object.values(this.charts).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+    }
+}
+
+// Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.progressDashboard = new StudentProgressDashboard();
+});
+
+// Cleanup when page unloads
+window.addEventListener('beforeunload', () => {
+    if (window.progressDashboard) {
+        window.progressDashboard.destroy();
+    }
+});
+</script>
+{% endblock %}

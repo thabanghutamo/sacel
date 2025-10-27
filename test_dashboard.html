@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SACEL Dashboard Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+        }
+        .visible-content {
+            background-color: #ffffff !important;
+            border: 2px solid #3b82f6 !important;
+            padding: 2rem !important;
+            margin: 1rem !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        h1, h2, h3 {
+            color: #111827 !important;
+            font-weight: 600 !important;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 768px) {
+            .mobile-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+            .mobile-grid-single {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen p-4">
+        <!-- Test Header -->
+        <div class="visible-content mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">SACEL Dashboard Visibility Test</h1>
+            <p class="text-gray-600">This page tests if all elements are properly visible with mobile responsiveness</p>
+            <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-green-800"><i class="fas fa-check-circle mr-2"></i>If you can see this message clearly, the CSS is working!</p>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mobile-grid">
+            <div class="stat-card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-book text-white text-lg"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Assignments</p>
+                        <p class="text-2xl font-bold text-gray-900">4</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-white text-lg"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Completed</p>
+                        <p class="text-2xl font-bold text-gray-900">3</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-lg"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pending</p>
+                        <p class="text-2xl font-bold text-gray-900">1</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-star text-white text-lg"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Average Grade</p>
+                        <p class="text-2xl font-bold text-gray-900">72%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mobile-grid-single">
+            <div class="stat-card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Assignments</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900">Mathematics Quiz</h3>
+                                <p class="text-sm text-gray-500">Math • Due: Nov 1, 2025</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Completed</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900">English Essay</h3>
+                                <p class="text-sm text-gray-500">English • Due: Nov 5, 2025</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Grades</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">Science Project</p>
+                            <p class="text-sm text-gray-500">Science</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-green-600">85%</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">History Report</p>
+                            <p class="text-sm text-gray-500">History</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">78%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Test Section -->
+        <div class="visible-content mt-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Mobile Responsiveness Test</h2>
+            <div class="space-y-4">
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-blue-800"><i class="fas fa-mobile-alt mr-2"></i>Resize your browser window to test mobile responsiveness</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mobile-grid">
+                    <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center">Mobile 1</div>
+                    <div class="p-4 bg-green-100 text-green-800 rounded-lg text-center">Mobile 2</div>
+                    <div class="p-4 bg-blue-100 text-blue-800 rounded-lg text-center">Mobile 3</div>
+                    <div class="p-4 bg-purple-100 text-purple-800 rounded-lg text-center">Mobile 4</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button Test -->
+        <div class="visible-content mt-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Interactive Elements Test</h2>
+            <div class="space-y-4">
+                <div class="flex flex-wrap gap-4">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                        Primary Button
+                    </button>
+                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors">
+                        Secondary Button
+                    </button>
+                    <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
+                        Success Button
+                    </button>
+                </div>
+                
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p class="text-yellow-800"><i class="fas fa-exclamation-triangle mr-2"></i>All buttons should be clearly visible and change color on hover</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test JavaScript functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard test page loaded successfully');
+            
+            // Add click handlers to test buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    alert('Button clicked: ' + this.textContent);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

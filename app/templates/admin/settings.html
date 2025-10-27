@@ -1,0 +1,224 @@
+{% extends "base/layout.html" %}
+{% block title %}System Settings - SACEL Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div class="py-6 md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        System Settings
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Configure system-wide settings and preferences for the SACEL platform
+                    </p>
+                </div>
+                <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                    <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        
+        <!-- General Settings -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">General Settings</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Basic platform configuration</p>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="platform_name" class="block text-sm font-medium text-gray-700">Platform Name</label>
+                            <input type="text" id="platform_name" value="SACEL" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="platform_url" class="block text-sm font-medium text-gray-700">Platform URL</label>
+                            <input type="url" id="platform_url" value="https://sacel.edu.za" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="platform_description" class="block text-sm font-medium text-gray-700">Platform Description</label>
+                        <textarea id="platform_description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">South African Comprehensive Education & Learning Platform</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="default_language" class="block text-sm font-medium text-gray-700">Default Language</label>
+                            <select id="default_language" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="en" selected>English</option>
+                                <option value="af">Afrikaans</option>
+                                <option value="zu">Zulu</option>
+                                <option value="xh">Xhosa</option>
+                                <option value="st">Sotho</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="timezone" class="block text-sm font-medium text-gray-700">Timezone</label>
+                            <select id="timezone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="Africa/Johannesburg" selected>Africa/Johannesburg (SAST)</option>
+                                <option value="Africa/Cape_Town">Africa/Cape_Town (SAST)</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Email Settings -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Email Settings</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Configure email server and notification settings</p>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="smtp_host" class="block text-sm font-medium text-gray-700">SMTP Host</label>
+                            <input type="text" id="smtp_host" placeholder="smtp.gmail.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="smtp_port" class="block text-sm font-medium text-gray-700">SMTP Port</label>
+                            <input type="number" id="smtp_port" placeholder="587" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="smtp_username" class="block text-sm font-medium text-gray-700">SMTP Username</label>
+                            <input type="text" id="smtp_username" placeholder="noreply@sacel.edu.za" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="smtp_password" class="block text-sm font-medium text-gray-700">SMTP Password</label>
+                            <input type="password" id="smtp_password" placeholder="••••••••" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center">
+                            <input id="email_notifications" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="email_notifications" class="ml-2 block text-sm text-gray-900">
+                                Enable email notifications
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Security Settings</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Configure security and authentication settings</p>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="session_timeout" class="block text-sm font-medium text-gray-700">Session Timeout (minutes)</label>
+                            <input type="number" id="session_timeout" value="60" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="max_login_attempts" class="block text-sm font-medium text-gray-700">Max Login Attempts</label>
+                            <input type="number" id="max_login_attempts" value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input id="require_strong_passwords" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="require_strong_passwords" class="ml-2 block text-sm text-gray-900">
+                                Require strong passwords
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="enable_two_factor" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="enable_two_factor" class="ml-2 block text-sm text-gray-900">
+                                Enable two-factor authentication
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="force_password_change" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="force_password_change" class="ml-2 block text-sm text-gray-900">
+                                Force password change on first login
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Application Settings -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Application Settings</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Configure school application process settings</p>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="application_fee" class="block text-sm font-medium text-gray-700">Application Fee (ZAR)</label>
+                            <input type="number" id="application_fee" value="50" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="application_deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
+                            <input type="date" id="application_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input id="require_documents" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="require_documents" class="ml-2 block text-sm text-gray-900">
+                                Require supporting documents
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="auto_acknowledge" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="auto_acknowledge" class="ml-2 block text-sm text-gray-900">
+                                Auto-acknowledge application receipt
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="enable_waitlist" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="enable_waitlist" class="ml-2 block text-sm text-gray-900">
+                                Enable waitlist functionality
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="flex justify-end">
+            <button onclick="saveSettings()" class="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Save Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings() {
+    // Placeholder for save settings functionality
+    alert('Settings saved successfully! (This is a placeholder - actual implementation will save to database)');
+}
+</script>
+
+{% endblock %}

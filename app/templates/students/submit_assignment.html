@@ -1,0 +1,646 @@
+{% extends "base/layout.html" %}
+{% block title %}{{ translate_term('submit_assignment') }} - {{ assignment.title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div class="py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center">
+                            <a href="{{ url_for('students.view_assignment', assignment_id=assignment.id) }}" 
+                               class="text-gray-500 hover:text-gray-700 mr-4" title="{{ translate_term('back_to_assignment') }}">
+                                <i class="fas fa-arrow-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">{{ assignment.title }}</h1>
+                                <p class="mt-1 text-sm text-gray-500">{{ translate_term('complete_submit_assignment') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timer -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                        <div class="text-sm font-medium text-blue-900">{{ translate_term('time_remaining') }}</div>
+                        <div id="timeRemaining" class="text-lg font-bold text-blue-700"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="bg-white border-b">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">{{ translate_term('progress') }}</span>
+                    <span id="progressText" class="text-sm text-gray-500">0 {{ translate_term('of') }} {{ questions|length }} {{ translate_term('completed') }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        <form id="assignmentForm" class="space-y-8">
+            
+            <!-- Assignment Instructions -->
+            {% if assignment.content %}
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">
+                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>{{ translate_term('instructions') }}
+                    </h2>
+                    <div class="prose max-w-none text-gray-700">
+                        <div class="whitespace-pre-wrap">{{ assignment.content }}</div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Questions -->
+            {% if questions %}
+                <div class="space-y-6">
+                    {% for question in questions %}
+                        <div class="bg-white shadow rounded-lg p-6 question-card" data-question-index="{{ loop.index0 }}">
+                            <div class="flex items-start justify-between mb-4">
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    {{ translate_term('question') }} {{ loop.index }}
+                                    {% if question.points %}
+                                        <span class="text-sm font-normal text-gray-500">({{ question.points }} {{ translate_term('points') }})</span>
+                                    {% endif %}
+                                </h3>
+                                <div class="flex items-center">
+                                    <span id="questionStatus{{ loop.index0 }}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        {{ translate_term('not_answered') }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Question Text -->
+                            <div class="mb-6">
+                                <p class="text-gray-800">{{ question.question if question.question else question }}</p>
+                                
+                                {% if question.image %}
+                                    <div class="mt-4">
+                                        <img src="{{ question.image }}" alt="{{ translate_term('question_image') }}" class="max-w-full h-auto rounded border">
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Answer Input -->
+                            <div class="space-y-4">
+                                {% set question_type = question.type if question.type else 'text' %}
+                                
+                                {% if question_type == 'multiple_choice' %}
+                                    <!-- Multiple Choice -->
+                                    <div class="space-y-2">
+                                        {% for option in question.options %}
+                                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                <input type="radio" 
+                                                       name="question_{{ loop0.index0 }}" 
+                                                       value="{{ option.value if option.value else option }}"
+                                                       class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                                       onchange="updateProgress()">
+                                                <span class="text-gray-800">{{ option.text if option.text else option }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                {% elif question_type == 'true_false' %}
+                                    <!-- True/False -->
+                                    <div class="space-y-2">
+                                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                            <input type="radio" 
+                                                   name="question_{{ loop0.index0 }}" 
+                                                   value="true"
+                                                   class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                                   onchange="updateProgress()">
+                                            <span class="text-gray-800">{{ translate_term('true') }}</span>
+                                        </label>
+                                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                            <input type="radio" 
+                                                   name="question_{{ loop0.index0 }}" 
+                                                   value="false"
+                                                   class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                                   onchange="updateProgress()">
+                                            <span class="text-gray-800">{{ translate_term('false') }}</span>
+                                        </label>
+                                    </div>
+                                    
+                                {% elif question_type == 'short_answer' %}
+                                    <!-- Short Answer -->
+                                    <input type="text" 
+                                           name="question_{{ loop0.index0 }}"
+                                           placeholder="{{ translate_term('enter_your_answer') }}"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           oninput="updateProgress()">
+                                           
+                                {% else %}
+                                    <!-- Long Answer / Essay -->
+                                    <textarea name="question_{{ loop0.index0 }}"
+                                              rows="6"
+                                              placeholder="{{ translate_term('enter_your_answer') }}"
+                                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              oninput="updateProgress()"></textarea>
+                                {% endif %}
+                                
+                                <!-- Character/Word Count -->
+                                {% if question_type in ['text', 'essay'] %}
+                                    <div class="text-right">
+                                        <span class="text-sm text-gray-500">
+                                            <span id="wordCount{{ loop0.index0 }}">0</span> {{ translate_term('words') }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Question Help -->
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <button type="button" 
+                                        onclick="getQuestionHelp({{ loop.index0 }}, '{{ question.question if question.question else question }}')"
+                                        class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                    <i class="fas fa-robot mr-1"></i>{{ translate_term('get_ai_help') }}
+                                </button>
+                                <div id="questionHelp{{ loop.index0 }}" class="hidden mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                    <div class="text-sm text-purple-800" id="helpContent{{ loop.index0 }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- File Upload Section -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">
+                    <i class="fas fa-paperclip mr-2 text-blue-600"></i>{{ translate_term('file_attachments') }}
+                    <span class="text-sm font-normal text-gray-500">({{ translate_term('optional') }})</span>
+                </h2>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors" id="fileDropZone">
+                    <input type="file" id="fileInput" name="files" multiple accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" class="hidden">
+                    <div id="fileDropText">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600 mb-2">{{ translate_term('click_or_drag_files') }}</p>
+                        <p class="text-sm text-gray-500">{{ translate_term('supported_formats') }}: PDF, Word, Text, Images ({{ translate_term('max_10mb') }})</p>
+                    </div>
+                    <div id="fileList" class="hidden mt-4 space-y-2"></div>
+                </div>
+            </div>
+            
+            <!-- Submit Section -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-900">{{ translate_term('submit_assignment') }}</h2>
+                        <p class="text-sm text-gray-600 mt-1">{{ translate_term('review_before_submit') }}</p>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <button type="button" 
+                                onclick="saveDraft()"
+                                class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-save mr-2"></i>{{ translate_term('save_draft') }}
+                        </button>
+                        
+                        <button type="submit" 
+                                id="submitButton"
+                                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
+                            <i class="fas fa-paper-plane mr-2"></i>{{ translate_term('submit_assignment') }}
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Final Check -->
+                <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-800">
+                                <strong>{{ translate_term('important') }}:</strong> {{ translate_term('cannot_edit_after_submit') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="submitModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ translate_term('confirm_submission') }}</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500 mb-4">{{ translate_term('confirm_submission_message') }}</p>
+                
+                <div id="submissionSummary" class="text-left bg-gray-50 rounded-lg p-4 mb-4">
+                    <div class="text-sm">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">{{ translate_term('questions_answered') }}:</span>
+                            <span id="answeredCount">0 / {{ questions|length }}</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">{{ translate_term('files_attached') }}:</span>
+                            <span id="fileCount">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-medium">{{ translate_term('completion') }}:</span>
+                            <span id="completionPercentage">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button type="button" 
+                        onclick="closeSubmitModal()"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                    {{ translate_term('cancel') }}
+                </button>
+                <button type="button" 
+                        onclick="confirmSubmit()"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    {{ translate_term('confirm_submit') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Assignment data
+const assignmentData = {
+    id: {{ assignment.id }},
+    totalQuestions: {{ questions|length }},
+    dueDate: new Date('{{ assignment.due_date.isoformat() }}'),
+    existingAnswers: {% if submission and submission.answers %}{{ submission.answers | safe }}{% else %}{}{% endif %}
+};
+
+let startTime = new Date();
+let autoSaveInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAssignment();
+    startTimer();
+    setupFileUpload();
+    loadExistingAnswers();
+    
+    // Auto-save every 2 minutes
+    autoSaveInterval = setInterval(autoSave, 120000);
+});
+
+function initializeAssignment() {
+    updateProgress();
+    
+    // Add word counters for text areas
+    document.querySelectorAll('textarea').forEach((textarea, index) => {
+        textarea.addEventListener('input', function() {
+            updateWordCount(index, this.value);
+        });
+    });
+}
+
+function loadExistingAnswers() {
+    if (assignmentData.existingAnswers) {
+        Object.keys(assignmentData.existingAnswers).forEach(questionKey => {
+            const input = document.querySelector(`[name="${questionKey}"]`);
+            if (input) {
+                if (input.type === 'radio') {
+                    const radioInputs = document.querySelectorAll(`[name="${questionKey}"]`);
+                    radioInputs.forEach(radio => {
+                        if (radio.value === assignmentData.existingAnswers[questionKey]) {
+                            radio.checked = true;
+                        }
+                    });
+                } else {
+                    input.value = assignmentData.existingAnswers[questionKey];
+                }
+            }
+        });
+        updateProgress();
+    }
+}
+
+function startTimer() {
+    function updateTimer() {
+        const now = new Date();
+        const timeLeft = assignmentData.dueDate - now;
+        
+        if (timeLeft <= 0) {
+            document.getElementById('timeRemaining').innerHTML = '<span class="text-red-600">{{ translate_term("time_up") }}</span>';
+            autoSubmit();
+            return;
+        }
+        
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        
+        document.getElementById('timeRemaining').textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Warning when 10 minutes left
+        if (timeLeft <= 10 * 60 * 1000) {
+            document.getElementById('timeRemaining').className = 'text-lg font-bold text-red-600';
+        }
+    }
+    
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
+
+function updateProgress() {
+    const answers = getAnswers();
+    const answered = Object.values(answers).filter(answer => answer && answer.trim()).length;
+    const percentage = Math.round((answered / assignmentData.totalQuestions) * 100);
+    
+    document.getElementById('progressBar').style.width = percentage + '%';
+    document.getElementById('progressText').textContent = 
+        `${answered} {{ translate_term("of") }} ${assignmentData.totalQuestions} {{ translate_term("completed") }}`;
+    
+    // Update question statuses
+    Object.keys(answers).forEach((questionKey, index) => {
+        const statusElement = document.getElementById(`questionStatus${index}`);
+        if (statusElement) {
+            if (answers[questionKey] && answers[questionKey].trim()) {
+                statusElement.textContent = '{{ translate_term("answered") }}';
+                statusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+            } else {
+                statusElement.textContent = '{{ translate_term("not_answered") }}';
+                statusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
+            }
+        }
+    });
+    
+    return { answered, total: assignmentData.totalQuestions, percentage };
+}
+
+function updateWordCount(index, text) {
+    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const element = document.getElementById(`wordCount${index}`);
+    if (element) {
+        element.textContent = wordCount;
+    }
+}
+
+function getAnswers() {
+    const answers = {};
+    const form = document.getElementById('assignmentForm');
+    const formData = new FormData(form);
+    
+    for (let [key, value] of formData.entries()) {
+        if (key.startsWith('question_')) {
+            answers[key] = value;
+        }
+    }
+    
+    return answers;
+}
+
+function saveDraft() {
+    const answers = getAnswers();
+    
+    fetch(`/students/assignments/${assignmentData.id}/submit`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content')
+        },
+        body: JSON.stringify({
+            answers: answers,
+            status: 'draft'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('{{ translate_term("draft_saved") }}', 'success');
+        } else {
+            showNotification('{{ translate_term("error_saving_draft") }}', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('{{ translate_term("error_saving_draft") }}', 'error');
+    });
+}
+
+function autoSave() {
+    saveDraft();
+}
+
+function setupFileUpload() {
+    const fileInput = document.getElementById('fileInput');
+    const fileDropZone = document.getElementById('fileDropZone');
+    const fileList = document.getElementById('fileList');
+    
+    fileDropZone.addEventListener('click', () => fileInput.click());
+    
+    fileDropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('border-blue-400', 'bg-blue-50');
+    });
+    
+    fileDropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+    
+    fileDropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+        handleFiles(e.target.files);
+    });
+}
+
+function handleFiles(files) {
+    const fileList = document.getElementById('fileList');
+    const fileDropText = document.getElementById('fileDropText');
+    
+    if (files.length > 0) {
+        fileDropText.classList.add('hidden');
+        fileList.classList.remove('hidden');
+        fileList.innerHTML = '';
+        
+        Array.from(files).forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'flex items-center justify-between p-2 bg-gray-100 rounded border';
+            fileItem.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-file mr-2 text-gray-500"></i>
+                    <span class="text-sm text-gray-700">${file.name}</span>
+                    <span class="text-xs text-gray-500 ml-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                </div>
+                <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
+        });
+    }
+}
+
+function removeFile(index) {
+    const fileInput = document.getElementById('fileInput');
+    const dt = new DataTransfer();
+    
+    Array.from(fileInput.files).forEach((file, i) => {
+        if (i !== index) {
+            dt.items.add(file);
+        }
+    });
+    
+    fileInput.files = dt.files;
+    handleFiles(fileInput.files);
+    
+    if (fileInput.files.length === 0) {
+        document.getElementById('fileDropText').classList.remove('hidden');
+        document.getElementById('fileList').classList.add('hidden');
+    }
+}
+
+function getQuestionHelp(questionIndex, questionText) {
+    const helpDiv = document.getElementById(`questionHelp${questionIndex}`);
+    const helpContent = document.getElementById(`helpContent${questionIndex}`);
+    
+    if (helpDiv.classList.contains('hidden')) {
+        helpDiv.classList.remove('hidden');
+        helpContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>{{ translate_term("getting_help") }}...';
+        
+        fetch('/api/ai/ai-tutor', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content')
+            },
+            body: JSON.stringify({
+                question: `Help me understand this question: ${questionText}`,
+                subject: '{{ assignment.subject }}',
+                grade_level: {{ assignment.grade }},
+                context: 'Assignment help request'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            helpContent.innerHTML = `<i class="fas fa-robot mr-2"></i>${data.answer || '{{ translate_term("help_not_available") }}'}`;
+        })
+        .catch(error => {
+            helpContent.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>{{ translate_term("error_getting_help") }}';
+        });
+    } else {
+        helpDiv.classList.add('hidden');
+    }
+}
+
+function showSubmitModal() {
+    const progress = updateProgress();
+    const fileCount = document.getElementById('fileInput').files.length;
+    
+    document.getElementById('answeredCount').textContent = `${progress.answered} / ${progress.total}`;
+    document.getElementById('fileCount').textContent = fileCount;
+    document.getElementById('completionPercentage').textContent = `${progress.percentage}%`;
+    
+    document.getElementById('submitModal').classList.remove('hidden');
+}
+
+function closeSubmitModal() {
+    document.getElementById('submitModal').classList.add('hidden');
+}
+
+function confirmSubmit() {
+    const answers = getAnswers();
+    const formData = new FormData();
+    
+    // Add answers
+    Object.keys(answers).forEach(key => {
+        formData.append(key, answers[key]);
+    });
+    
+    // Add files
+    const files = document.getElementById('fileInput').files;
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+    
+    formData.append('status', 'submitted');
+    
+    fetch(`/students/assignments/${assignmentData.id}/submit`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            clearInterval(autoSaveInterval);
+            window.location.href = `/students/assignments/${assignmentData.id}`;
+        } else {
+            showNotification('{{ translate_term("error_submitting") }}', 'error');
+            closeSubmitModal();
+        }
+    })
+    .catch(error => {
+        showNotification('{{ translate_term("error_submitting") }}', 'error');
+        closeSubmitModal();
+    });
+}
+
+function autoSubmit() {
+    showNotification('{{ translate_term("auto_submitting") }}', 'warning');
+    setTimeout(() => {
+        confirmSubmit();
+    }, 3000);
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-yellow-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Form submission handler
+document.getElementById('assignmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    showSubmitModal();
+});
+
+// Page unload warning
+window.addEventListener('beforeunload', function(e) {
+    const answers = getAnswers();
+    if (Object.keys(answers).length > 0) {
+        e.preventDefault();
+        e.returnValue = '{{ translate_term("unsaved_changes_warning") }}';
+    }
+});
+</script>
+{% endblock %}

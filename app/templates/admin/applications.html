@@ -1,0 +1,267 @@
+{% extends "base/layout.html" %}
+{% block title %}Applications Management - SACEL Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-7xl lg:mx-auto lg:px-8">
+            <div class="py-6 md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        School Applications
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Manage and review student applications to schools
+                    </p>
+                </div>
+                <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                    <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <form method="GET" action="{{ url_for('admin.applications') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Status Filter -->
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="">All Statuses</option>
+                        <option value="submitted" {% if request.args.get('status') == 'submitted' %}selected{% endif %}>Submitted</option>
+                        <option value="under_review" {% if request.args.get('status') == 'under_review' %}selected{% endif %}>Under Review</option>
+                        <option value="approved" {% if request.args.get('status') == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if request.args.get('status') == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="waitlisted" {% if request.args.get('status') == 'waitlisted' %}selected{% endif %}>Waitlisted</option>
+                    </select>
+                </div>
+
+                <!-- School Filter -->
+                <div>
+                    <label for="school" class="block text-sm font-medium text-gray-700">School</label>
+                    <select name="school" id="school" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="">All Schools</option>
+                        {% for school in schools %}
+                        <option value="{{ school.id }}" {% if request.args.get('school') == school.id|string %}selected{% endif %}>
+                            {{ school.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search -->
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
+                    <input type="text" name="search" id="search" value="{{ request.args.get('search', '') }}" 
+                           placeholder="Student name, reference number..." 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+
+                <!-- Filter Button -->
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Applications ({{ applications.total }} total)
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    List of all school applications with current status
+                </p>
+            </div>
+
+            {% if applications.items %}
+            <ul class="divide-y divide-gray-200">
+                {% for application in applications.items %}
+                <li>
+                    <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                        <svg class="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="flex items-center">
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ application.student_first_name }} {{ application.student_last_name }}
+                                        </p>
+                                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Grade {{ application.grade_applying_for }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 flex items-center text-sm text-gray-500">
+                                        <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                        </svg>
+                                        <p>{{ application.parent_email }}</p>
+                                        <span class="mx-2">•</span>
+                                        <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                        </svg>
+                                        <p>{{ application.parent_phone }}</p>
+                                    </div>
+                                    <div class="mt-1 text-sm text-gray-500">
+                                        <span class="font-medium">{{ application.school.name if application.school else 'Unknown School' }}</span>
+                                        <span class="mx-2">•</span>
+                                        <span>{{ application.reference_number }}</span>
+                                        <span class="mx-2">•</span>
+                                        <span>{{ application.submitted_at.strftime('%B %d, %Y') if application.submitted_at else 'Date unknown' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <!-- Status Badge -->
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if application.status == 'submitted' %}bg-yellow-100 text-yellow-800
+                                    {% elif application.status == 'under_review' %}bg-blue-100 text-blue-800
+                                    {% elif application.status == 'approved' %}bg-green-100 text-green-800
+                                    {% elif application.status == 'rejected' %}bg-red-100 text-red-800
+                                    {% elif application.status == 'waitlisted' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ application.status.replace('_', ' ').title() }}
+                                </span>
+                                
+                                <!-- Actions -->
+                                <div class="flex space-x-2">
+                                    <a href="{{ url_for('admin.application_detail', application_id=application.id) }}" 
+                                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                                        View
+                                    </a>
+                                    {% if application.status == 'submitted' %}
+                                    <button onclick="updateApplicationStatus({{ application.id }}, 'under_review')" 
+                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700">
+                                        Review
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Pagination -->
+            {% if applications.pages > 1 %}
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    {% if applications.has_prev %}
+                        <a href="{{ url_for('admin.applications', page=applications.prev_num, **request.args) }}" 
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Previous
+                        </a>
+                    {% endif %}
+                    {% if applications.has_next %}
+                        <a href="{{ url_for('admin.applications', page=applications.next_num, **request.args) }}" 
+                           class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            Showing <span class="font-medium">{{ (applications.page - 1) * 20 + 1 }}</span>
+                            to <span class="font-medium">{{ applications.page * 20 if applications.page * 20 < applications.total else applications.total }}</span>
+                            of <span class="font-medium">{{ applications.total }}</span> applications
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                            {% for page_num in applications.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != applications.page %}
+                                        <a href="{{ url_for('admin.applications', page=page_num, **request.args) }}" 
+                                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            {{ page_num }}
+                                        </a>
+                                    {% else %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                                            {{ page_num }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                        ...
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No applications found</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    No applications match your current filters.
+                </p>
+                <div class="mt-6">
+                    <a href="{{ url_for('admin.applications') }}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        Clear Filters
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function updateApplicationStatus(applicationId, newStatus) {
+    if (confirm(`Are you sure you want to change the application status to "${newStatus.replace('_', ' ')}"?`)) {
+        fetch(`/admin/applications/${applicationId}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                status: newStatus,
+                notes: `Status changed to ${newStatus} by admin`
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating application status: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating application status');
+        });
+    }
+}
+</script>
+
+{% endblock %}

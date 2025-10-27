@@ -1,0 +1,520 @@
+{% extends "base/layout.html" %}
+
+{% block title %}File Upload - SACEL{% endblock %}
+
+{% block page_title %}File Upload{% endblock %}
+{% block page_subtitle %}Upload documents and files securely{% endblock %}
+
+{% block extra_head %}
+<style>
+    .file-drop-zone {
+        border: 2px dashed #d1d5db;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        background: #f9fafb;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .file-drop-zone:hover,
+    .file-drop-zone.drag-over {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        transform: scale(1.02);
+    }
+    
+    .file-preview {
+        display: none;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .file-preview.show {
+        display: block;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+    
+    .upload-result {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        display: none;
+    }
+    
+    .upload-result.success {
+        background: #f0fdf4;
+        border: 1px solid #22c55e;
+        color: #166534;
+        display: block;
+    }
+    
+    .upload-result.error {
+        background: #fef2f2;
+        border: 1px solid #ef4444;
+        color: #991b1b;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Debug Information -->
+<div class="content-debug mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-2">File Upload Debug</h2>
+    <p class="text-gray-600">Upload functionality available</p>
+    <p class="text-gray-600">User: {{ current_user.first_name }} {{ current_user.last_name }}</p>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">📁 File Upload Center</h1>
+            <p class="text-lg text-gray-600">Upload documents, images, and multimedia files securely</p>
+        </div>
+
+        <!-- Upload Form -->
+        <form id="uploadForm" enctype="multipart/form-data" class="space-y-6">
+            <!-- File Type Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="form-group">
+                    <label for="fileType" class="form-label">📂 File Type</label>
+                    <select id="fileType" name="file_type" class="form-input" required>
+                        <option value="documents">📄 Documents</option>
+                        <option value="images">🖼️ Images</option>
+                        <option value="multimedia">🎥 Multimedia</option>
+                        <option value="presentations">📊 Presentations</option>
+                        <option value="spreadsheets">📈 Spreadsheets</option>
+                        <option value="archives">📦 Archives</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subfolder" class="form-label">📁 Category</label>
+                    <select id="subfolder" name="subfolder" class="form-input">
+                        <option value="">Default</option>
+                        <option value="assignments">📝 Assignments</option>
+                        <option value="resources">📚 Resources</option>
+                        <option value="submissions">📤 Submissions</option>
+                        <option value="personal">👤 Personal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">🌍 Visibility</label>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="is_public" value="false" checked class="mr-2">
+                            🔒 Private
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="is_public" value="true" class="mr-2">
+                            🌐 Public
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description" class="form-label">📝 Description (Optional)</label>
+                <textarea id="description" name="description" rows="3" class="form-input" 
+                         placeholder="Add a description for this file..."></textarea>
+            </div>
+
+            <!-- Single File Upload -->
+            <div id="singleUploadSection">
+                <h3 class="text-lg font-semibold mb-4">📤 Single File Upload</h3>
+                <div class="file-drop-zone" id="dropZone">
+                    <div class="text-6xl mb-4">📁</div>
+                    <h4 class="text-xl font-semibold text-gray-700 mb-2">Drop your file here</h4>
+                    <p class="text-gray-500 mb-4">or click to browse</p>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                    <input type="file" id="fileInput" name="file" style="display: none;">
+                    <div class="mt-4 text-sm text-gray-500">
+                        Maximum file size varies by type. See supported formats below.
+                    </div>
+                </div>
+                
+                <div class="file-preview" id="filePreview">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold" id="fileName">File Name</h4>
+                            <p class="text-sm text-gray-500" id="fileSize">File Size</p>
+                        </div>
+                        <button type="button" class="text-red-500 hover:text-red-700" onclick="clearFile()">
+                            ❌ Remove
+                        </button>
+                    </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    
+                    <div class="flex space-x-4 mt-4">
+                        <button type="button" id="validateBtn" class="btn btn-secondary" onclick="validateFile()">
+                            ✅ Validate
+                        </button>
+                        <button type="button" id="uploadBtn" class="btn btn-primary" onclick="uploadFile()">
+                            ⬆️ Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiple File Upload -->
+            <div id="multipleUploadSection" class="border-t pt-6">
+                <h3 class="text-lg font-semibold mb-4">📤 Multiple File Upload</h3>
+                <div class="file-drop-zone" id="multiDropZone">
+                    <div class="text-6xl mb-4">📁📁</div>
+                    <h4 class="text-xl font-semibold text-gray-700 mb-2">Drop multiple files here</h4>
+                    <p class="text-gray-500 mb-4">or click to browse</p>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('multiFileInput').click()">
+                        Choose Files
+                    </button>
+                    <input type="file" id="multiFileInput" name="files" multiple style="display: none;">
+                </div>
+                
+                <div id="multiFileList" class="space-y-2 mt-4"></div>
+                
+                <button type="button" id="uploadMultipleBtn" class="btn btn-primary mt-4" onclick="uploadMultipleFiles()" style="display: none;">
+                    ⬆️ Upload All Files
+                </button>
+            </div>
+
+            <!-- Upload Results -->
+            <div class="upload-result" id="uploadResult"></div>
+        </form>
+
+        <!-- File Format Information -->
+        <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-semibold mb-4">📋 Supported File Formats & Limits</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded">
+                    <h4 class="font-semibold text-blue-600">📄 Documents (10MB)</h4>
+                    <p class="text-sm text-gray-600">PDF, DOC, DOCX, TXT, RTF, ODT</p>
+                </div>
+                <div class="bg-white p-4 rounded">
+                    <h4 class="font-semibold text-green-600">🖼️ Images (5MB)</h4>
+                    <p class="text-sm text-gray-600">PNG, JPG, JPEG, GIF, BMP, SVG, WEBP</p>
+                </div>
+                <div class="bg-white p-4 rounded">
+                    <h4 class="font-semibold text-purple-600">🎥 Multimedia (100MB)</h4>
+                    <p class="text-sm text-gray-600">MP4, AVI, MOV, MP3, WAV, M4A, OGG</p>
+                </div>
+                <div class="bg-white p-4 rounded">
+                    <h4 class="font-semibold text-orange-600">📊 Presentations (25MB)</h4>
+                    <p class="text-sm text-gray-600">PPT, PPTX, ODP, KEY</p>
+                </div>
+                <div class="bg-white p-4 rounded">
+                    <h4 class="font-semibold text-red-600">📈 Spreadsheets (10MB)</h4>
+                    <p class="text-sm text-gray-600">XLS, XLSX, ODS, NUMBERS, CSV</p>
+                </div>
+                <div class="bg-white p-4 rounded">
+                    <h4 class="font-semibold text-gray-600">📦 Archives (50MB)</h4>
+                    <p class="text-sm text-gray-600">ZIP, RAR, 7Z, TAR, GZ</p>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                <h4 class="font-semibold text-blue-800">🔒 Security Features</h4>
+                <ul class="text-sm text-blue-700 mt-2 space-y-1">
+                    <li>• Comprehensive file validation and MIME type checking</li>
+                    <li>• Malicious content detection and prevention</li>
+                    <li>• Automatic thumbnail generation for images</li>
+                    <li>• File integrity verification with SHA-256 hashing</li>
+                    <li>• Role-based access control and permissions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const multiFileInput = document.getElementById('multiFileInput');
+    const dropZone = document.getElementById('dropZone');
+    const multiDropZone = document.getElementById('multiDropZone');
+    const filePreview = document.getElementById('filePreview');
+    const multiFileList = document.getElementById('multiFileList');
+    
+    // Single file upload handlers
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Drag and drop handlers
+    dropZone.addEventListener('dragover', handleDragOver);
+    dropZone.addEventListener('dragleave', handleDragLeave);
+    dropZone.addEventListener('drop', handleFileDrop);
+    
+    multiDropZone.addEventListener('dragover', handleDragOver);
+    multiDropZone.addEventListener('dragleave', handleDragLeave);
+    multiDropZone.addEventListener('drop', handleMultiFileDrop);
+    
+    // Multiple file input handler
+    multiFileInput.addEventListener('change', handleMultiFileSelect);
+    
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            showFilePreview(file);
+        }
+    }
+    
+    function handleMultiFileSelect(event) {
+        const files = Array.from(event.target.files);
+        displayMultipleFiles(files);
+    }
+    
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.currentTarget.classList.add('drag-over');
+    }
+    
+    function handleDragLeave(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
+    }
+    
+    function handleFileDrop(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
+        
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            showFilePreview(files[0]);
+        }
+    }
+    
+    function handleMultiFileDrop(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
+        
+        const files = Array.from(event.dataTransfer.files);
+        multiFileInput.files = event.dataTransfer.files;
+        displayMultipleFiles(files);
+    }
+    
+    function showFilePreview(file) {
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatFileSize(file.size);
+        filePreview.classList.add('show');
+    }
+    
+    function displayMultipleFiles(files) {
+        multiFileList.innerHTML = '';
+        
+        files.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'flex items-center justify-between p-3 bg-white border rounded';
+            fileItem.innerHTML = `
+                <div>
+                    <span class="font-medium">${file.name}</span>
+                    <span class="text-sm text-gray-500 ml-2">(${formatFileSize(file.size)})</span>
+                </div>
+                <button type="button" class="text-red-500 hover:text-red-700" onclick="removeMultiFile(${index})">
+                    ❌
+                </button>
+            `;
+            multiFileList.appendChild(fileItem);
+        });
+        
+        document.getElementById('uploadMultipleBtn').style.display = files.length > 0 ? 'block' : 'none';
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+
+function clearFile() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('filePreview').classList.remove('show');
+    document.getElementById('progressFill').style.width = '0%';
+}
+
+function removeMultiFile(index) {
+    // This is a simplified version - in a real implementation, 
+    // you'd need to maintain a files array and update the input
+    const multiFileInput = document.getElementById('multiFileInput');
+    const files = Array.from(multiFileInput.files);
+    files.splice(index, 1);
+    
+    // Create new FileList (simplified)
+    document.getElementById('multiFileList').children[index].remove();
+    
+    if (files.length === 0) {
+        document.getElementById('uploadMultipleBtn').style.display = 'none';
+    }
+}
+
+function validateFile() {
+    const fileInput = document.getElementById('fileInput');
+    const formData = new FormData();
+    
+    if (!fileInput.files[0]) {
+        showResult('Please select a file first', 'error');
+        return;
+    }
+    
+    formData.append('file', fileInput.files[0]);
+    formData.append('file_type', document.getElementById('fileType').value);
+    
+    fetch('/api/files/validate', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valid) {
+            showResult('✅ File validation successful! File is safe to upload.', 'success');
+        } else {
+            showResult(`❌ Validation failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        showResult('❌ Validation error occurred', 'error');
+        console.error('Validation error:', error);
+    });
+}
+
+function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const formData = new FormData();
+    
+    if (!fileInput.files[0]) {
+        showResult('Please select a file first', 'error');
+        return;
+    }
+    
+    // Collect form data
+    formData.append('file', fileInput.files[0]);
+    formData.append('file_type', document.getElementById('fileType').value);
+    formData.append('subfolder', document.getElementById('subfolder').value);
+    formData.append('description', document.getElementById('description').value);
+    formData.append('is_public', document.querySelector('input[name="is_public"]:checked').value);
+    
+    // Show progress
+    const progressFill = document.getElementById('progressFill');
+    progressFill.style.width = '10%';
+    
+    fetch('/api/files/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        progressFill.style.width = '90%';
+        return response.json();
+    })
+    .then(data => {
+        progressFill.style.width = '100%';
+        
+        if (data.success) {
+            showResult(`✅ File uploaded successfully! Saved as: ${data.saved_filename}`, 'success');
+            setTimeout(() => {
+                clearFile();
+                showResult('', '');
+            }, 3000);
+        } else {
+            showResult(`❌ Upload failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        progressFill.style.width = '0%';
+        showResult('❌ Upload error occurred', 'error');
+        console.error('Upload error:', error);
+    });
+}
+
+function uploadMultipleFiles() {
+    const multiFileInput = document.getElementById('multiFileInput');
+    const formData = new FormData();
+    
+    if (!multiFileInput.files.length) {
+        showResult('Please select files first', 'error');
+        return;
+    }
+    
+    // Add all files
+    Array.from(multiFileInput.files).forEach(file => {
+        formData.append('files', file);
+    });
+    
+    // Add other form data
+    formData.append('file_type', document.getElementById('fileType').value);
+    formData.append('subfolder', document.getElementById('subfolder').value);
+    
+    fetch('/api/files/upload/multiple', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let message = `✅ Uploaded ${data.uploaded_count} files successfully!`;
+            if (data.error_count > 0) {
+                message += ` ${data.error_count} files failed.`;
+            }
+            showResult(message, 'success');
+            
+            // Clear after success
+            setTimeout(() => {
+                document.getElementById('multiFileInput').value = '';
+                document.getElementById('multiFileList').innerHTML = '';
+                document.getElementById('uploadMultipleBtn').style.display = 'none';
+                showResult('', '');
+            }, 3000);
+        } else {
+            showResult(`❌ Upload failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        showResult('❌ Multiple upload error occurred', 'error');
+        console.error('Multiple upload error:', error);
+    });
+}
+
+function showResult(message, type) {
+    const resultDiv = document.getElementById('uploadResult');
+    resultDiv.textContent = message;
+    resultDiv.className = `upload-result ${type}`;
+    
+    if (message === '') {
+        resultDiv.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

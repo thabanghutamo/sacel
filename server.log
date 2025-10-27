@@ -1,0 +1,38 @@
+Redis connection successful
+ * Serving Flask app 'app'
+ * Debug mode: on
+Redis connection successful
+2025-10-26 17:14:35,597 INFO sqlalchemy.engine.Engine SELECT DATABASE()
+2025-10-26 17:14:35,603 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-10-26 17:14:36,453 INFO sqlalchemy.engine.Engine SELECT @@sql_mode
+2025-10-26 17:14:36,458 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-10-26 17:14:36,888 INFO sqlalchemy.engine.Engine SELECT @@lower_case_table_names
+2025-10-26 17:14:36,889 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-10-26 17:14:37,741 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-10-26 17:14:37,754 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.first_name AS users_first_name, users.last_name AS users_last_name, users.email AS users_email, users.phone AS users_phone, users.id_number AS users_id_number, users.`role` AS users_role, users.password_hash AS users_password_hash, users.school_id AS users_school_id, users.is_active AS users_is_active, users.must_change_password AS users_must_change_password, users.preferred_language AS users_preferred_language, users.created_at AS users_created_at, users.last_login AS users_last_login 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-10-26 17:14:37,755 INFO sqlalchemy.engine.Engine [generated in 0.00115s] {'pk_1': 11}
+2025-10-26 17:14:38,630 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-10-26 17:14:52,764 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-10-26 17:14:52,770 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.first_name AS users_first_name, users.last_name AS users_last_name, users.email AS users_email, users.phone AS users_phone, users.id_number AS users_id_number, users.`role` AS users_role, users.password_hash AS users_password_hash, users.school_id AS users_school_id, users.is_active AS users_is_active, users.must_change_password AS users_must_change_password, users.preferred_language AS users_preferred_language, users.created_at AS users_created_at, users.last_login AS users_last_login 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-10-26 17:14:52,770 INFO sqlalchemy.engine.Engine [cached since 15.02s ago] {'pk_1': 11}
+2025-10-26 17:14:56,851 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-10-26 17:14:59,940 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-10-26 17:14:59,942 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.first_name AS users_first_name, users.last_name AS users_last_name, users.email AS users_email, users.phone AS users_phone, users.id_number AS users_id_number, users.`role` AS users_role, users.password_hash AS users_password_hash, users.school_id AS users_school_id, users.is_active AS users_is_active, users.must_change_password AS users_must_change_password, users.preferred_language AS users_preferred_language, users.created_at AS users_created_at, users.last_login AS users_last_login 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-10-26 17:14:59,943 INFO sqlalchemy.engine.Engine [cached since 22.19s ago] {'pk_1': 11}
+2025-10-26 17:15:01,279 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-10-26 17:15:06,708 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-10-26 17:15:06,710 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.first_name AS users_first_name, users.last_name AS users_last_name, users.email AS users_email, users.phone AS users_phone, users.id_number AS users_id_number, users.`role` AS users_role, users.password_hash AS users_password_hash, users.school_id AS users_school_id, users.is_active AS users_is_active, users.must_change_password AS users_must_change_password, users.preferred_language AS users_preferred_language, users.created_at AS users_created_at, users.last_login AS users_last_login 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-10-26 17:15:06,711 INFO sqlalchemy.engine.Engine [cached since 28.96s ago] {'pk_1': 11}
+2025-10-26 17:15:07,146 INFO sqlalchemy.engine.Engine SELECT schools.id AS schools_id, schools.name AS schools_name, schools.school_type AS schools_school_type, schools.address AS schools_address, schools.city AS schools_city, schools.province AS schools_province, schools.postal_code AS schools_postal_code, schools.phone AS schools_phone, schools.email AS schools_email, schools.website AS schools_website, schools.latitude AS schools_latitude, schools.longitude AS schools_longitude, schools.logo_url AS schools_logo_url, schools.primary_color AS schools_primary_color, schools.secondary_color AS schools_secondary_color, schools.established_year AS schools_established_year, schools.student_capacity AS schools_student_capacity, schools.current_enrollment AS schools_current_enrollment, schools.languages_offered AS schools_languages_offered, schools.admission_open AS schools_admission_open, schools.admission_requirements AS schools_admission_requirements, schools.pass_rate AS schools_pass_rate, schools.average_score AS schools_average_score, schools.is_active AS schools_is_active, schools.created_at AS schools_created_at 
+FROM schools 
+WHERE schools.id = %(pk_1)s
+2025-10-26 17:15:07,149 INFO sqlalchemy.engine.Engine [generated in 0.00293s] {'pk_1': 1}
+2025-10-26 17:15:08,036 INFO sqlalchemy.engine.Engine ROLLBACK

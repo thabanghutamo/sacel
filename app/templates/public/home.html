@@ -1,0 +1,285 @@
+{% extends "base/layout.html" %}
+
+{% block title %}{{ translate_term('site_name') }} - {{ translate_term('site_tagline') }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .hero-gradient {
+        background: linear-gradient(135deg, var(--accent-600) 0%, var(--accent-700) 100%);
+    }
+    .feature-card {
+        transition: all var(--transition-base);
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent-200);
+    }
+    .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
+    }
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+    @keyframes floating {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Enhanced Styling -->
+<div class="relative overflow-hidden">
+    <div class="hero-gradient">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div class="text-center">
+                <div class="floating">
+                    <h1 class="text-5xl md:text-7xl font-bold text-white mb-6">
+                        Welcome to <span class="text-white">SACEL</span>
+                    </h1>
+                </div>
+                <p class="text-xl md:text-2xl text-accent-100 mb-8 max-w-3xl mx-auto">
+                    South Africa's Premier Educational Platform
+                </p>
+                <p class="text-lg text-accent-200 mb-12 max-w-2xl mx-auto">
+                    Empowering education through AI, connecting schools across all 11 official languages
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                    <a href="{{ url_for('public.schools') }}" 
+                       class="btn btn-primary py-4 px-8 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105">
+                        🏫 Explore Schools
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" 
+                       class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-accent-600 font-semibold py-4 px-8 rounded-xl transition-all duration-300">
+                        🚀 Get Started
+                    </a>
+                </div>
+                
+                <!-- Statistics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                    <div class="stat-card rounded-lg p-6 text-center">
+                        <div class="text-3xl font-bold text-accent-600">3</div>
+                        <div class="text-sm text-gray-600">Schools</div>
+                    </div>
+                    <div class="stat-card rounded-lg p-6 text-center">
+                        <div class="text-3xl font-bold text-accent-600">50+</div>
+                        <div class="text-sm text-gray-600">Teachers</div>
+                    </div>
+                    <div class="stat-card rounded-lg p-6 text-center">
+                        <div class="text-3xl font-bold text-accent-600">11</div>
+                        <div class="text-sm text-gray-600">Languages</div>
+                    </div>
+                    <div class="stat-card rounded-lg p-6 text-center">
+                        <div class="text-3xl font-bold text-accent-600">AI</div>
+                        <div class="text-sm text-gray-600">Powered</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section with Interactive Cards -->
+<div class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                Revolutionary Education Features
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Experience the future of education with our comprehensive platform designed for South African schools
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- School Admissions -->
+            <div class="feature-card p-8">
+                <div class="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Smart Admissions</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Streamlined digital application process with real-time status tracking and automated document verification.
+                </p>
+                <div class="text-center">
+                    <a href="{{ url_for('admissions.apply') }}" class="inline-flex items-center text-accent-600 hover:text-accent-700 font-medium transition-colors duration-200">
+                        Apply Now <svg class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI-Powered Learning -->
+            <div class="feature-card p-8">
+                <div class="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-secondary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">AI Learning Assistant</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Advanced AI generates personalized assignments, provides instant grading, and offers smart learning recommendations.
+                </p>
+                <div class="text-center">
+                    <span class="inline-flex items-center text-secondary-600 font-medium">
+                        <span class="pulse-animation text-lg mr-2">⚡</span> Powered by OpenAI
+                    </span>
+                </div>
+            </div>
+
+            <!-- Multi-Language Support -->
+            <div class="feature-card p-8">
+                <div class="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">All SA Languages</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Complete support for all 11 official South African languages with intelligent translation and localization.
+                </p>
+                <div class="text-center">
+                    <a href="{{ url_for('public.language_demo') }}" class="inline-flex items-center text-success-600 hover:text-success-700 font-medium transition-colors duration-200">
+                        Try Demo <svg class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">📊 Smart Analytics</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Comprehensive performance tracking with detailed insights into student progress and learning patterns.
+                </p>
+                <div class="text-center">
+                    <span class="inline-flex items-center text-yellow-600 font-medium">
+                        Real-time Data 📈
+                    </span>
+                </div>
+            </div>
+
+            <!-- Advanced Grading -->
+            <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">✅ Smart Grading</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Rubric-based assessment with AI-powered automated grading and comprehensive peer review systems.
+                </p>
+                <div class="text-center">
+                    <span class="inline-flex items-center text-red-600 font-medium">
+                        Auto-Grade Ready ⚡
+                    </span>
+                </div>
+            </div>
+
+            <!-- Redis Performance -->
+            <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">⚡ Lightning Fast</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Redis-powered caching ensures blazing-fast performance and seamless user experience across all features.
+                </p>
+                <div class="text-center">
+                    <span class="inline-flex items-center text-indigo-600 font-medium">
+                        <span class="pulse-animation">⚡</span> Redis Optimized
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Stories Section -->
+<div class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                🌟 Join Our Success Stories
+            </h2>
+            <p class="text-xl text-gray-600">
+                Schools across South Africa are already transforming education with SACEL
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center p-6 bg-blue-50 rounded-xl">
+                <div class="text-4xl mb-4">🏫</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Johannesburg Primary</h3>
+                <p class="text-gray-600">"SACEL transformed our admission process and improved student engagement significantly."</p>
+                <div class="mt-4 text-blue-600 font-medium">📍 Gauteng</div>
+            </div>
+            
+            <div class="text-center p-6 bg-green-50 rounded-xl">
+                <div class="text-4xl mb-4">🏛️</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Cape Town High School</h3>
+                <p class="text-gray-600">"The AI-powered grading system saved our teachers hours every week."</p>
+                <div class="mt-4 text-green-600 font-medium">📍 Western Cape</div>
+            </div>
+            
+            <div class="text-center p-6 bg-purple-50 rounded-xl">
+                <div class="text-4xl mb-4">🎓</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Durban Combined</h3>
+                <p class="text-gray-600">"Multi-language support helped us connect with all our diverse students."</p>
+                <div class="mt-4 text-purple-600 font-medium">📍 KwaZulu-Natal</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Final CTA Section -->
+<div class="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl font-bold text-white mb-6">
+            🚀 Ready to Transform Education?
+        </h2>
+        <p class="text-xl text-blue-100 mb-8">
+            Join the revolution. Start your journey with SACEL today.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{{ url_for('auth.register') }}" 
+               class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 px-8 rounded-full transition duration-300 transform hover:scale-105 shadow-lg">
+                🎯 Start Free Trial
+            </a>
+            <a href="{{ url_for('public.schools') }}" 
+               class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-full transition duration-300">
+                📚 Browse Schools
+            </a>
+        </div>
+        <p class="text-blue-200 mt-6 text-sm">
+            ✨ No credit card required • 🔒 Secure & Private • 🇿🇦 Made in South Africa
+        </p>
+    </div>
+</div>
+{% endblock %}

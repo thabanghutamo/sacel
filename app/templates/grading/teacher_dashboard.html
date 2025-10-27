@@ -1,0 +1,427 @@
+{% extends "base/layout.html" %}
+
+{% block title %}{{ _('Advanced Grading Dashboard') }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            {{ _('Advanced Grading System') }}
+        </h1>
+        <p class="text-gray-600">
+            {{ _('Rubric-based grading, automated assessment, and peer review management') }}
+        </p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">{{ _('Pending Grading') }}</p>
+                    <p id="pending-count" class="text-2xl font-bold text-orange-600">0</p>
+                </div>
+                <div class="p-3 bg-orange-100 rounded-full">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">{{ _('Auto-Graded') }}</p>
+                    <p id="auto-graded-count" class="text-2xl font-bold text-blue-600">0</p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">{{ _('Peer Reviews') }}</p>
+                    <p id="peer-review-count" class="text-2xl font-bold text-green-600">0</p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">{{ _('Avg Grade') }}</p>
+                    <p id="avg-grade" class="text-2xl font-bold text-purple-600">0%</p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-full">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grading Tools -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Available Rubrics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Available Rubrics') }}</h3>
+            <div id="rubrics-list" class="space-y-3">
+                <!-- Rubrics will be loaded dynamically -->
+            </div>
+            <button id="create-rubric-btn" class="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {{ _('Create Custom Rubric') }}
+            </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Quick Actions') }}</h3>
+            <div class="space-y-3">
+                <button id="auto-grade-all-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    {{ _('Auto-Grade All Submissions') }}
+                </button>
+                <button id="setup-peer-review-btn" class="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    {{ _('Setup Peer Reviews') }}
+                </button>
+                <button id="export-grades-btn" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    {{ _('Export Grades') }}
+                </button>
+                <button id="clear-cache-btn" class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    {{ _('Clear Grading Cache') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignments Requiring Grading -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Assignments Requiring Grading') }}</h3>
+        <div id="assignments-table" class="overflow-x-auto">
+            <!-- Table will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Recent Grading Activity -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Recent Grading Activity') }}</h3>
+        <div id="recent-activity" class="space-y-3">
+            <!-- Activity will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Create Rubric Modal -->
+<div id="create-rubric-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Create Custom Rubric') }}</h3>
+                
+                <form id="rubric-form">
+                    <div class="mb-4">
+                        <label for="rubric-title" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ _('Rubric Title') }}
+                        </label>
+                        <input type="text" id="rubric-title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="rubric-description" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ _('Description') }}
+                        </label>
+                        <textarea id="rubric-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="text-md font-medium text-gray-700 mb-2">{{ _('Criteria') }}</h4>
+                        <div id="criteria-container">
+                            <!-- Criteria will be added dynamically -->
+                        </div>
+                        <button type="button" id="add-criteria-btn" class="mt-2 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            {{ _('Add Criteria') }}
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-rubric-btn" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        {{ _('Cancel') }}
+                    </button>
+                    <button id="save-rubric-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        {{ _('Save Rubric') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-Grade Modal -->
+<div id="auto-grade-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('Auto-Grade Submissions') }}</h3>
+                
+                <div class="mb-4">
+                    <label for="assignment-select" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ _('Select Assignment') }}
+                    </label>
+                    <select id="assignment-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">{{ _('Choose assignment...') }}</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="rubric-select" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ _('Select Rubric') }}
+                    </label>
+                    <select id="rubric-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">{{ _('Choose rubric...') }}</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-auto-grade-btn" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        {{ _('Cancel') }}
+                    </button>
+                    <button id="start-auto-grade-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        {{ _('Start Auto-Grading') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dashboard data
+    loadGradingDashboard();
+    
+    // Event listeners
+    document.getElementById('create-rubric-btn').addEventListener('click', openCreateRubricModal);
+    document.getElementById('auto-grade-all-btn').addEventListener('click', openAutoGradeModal);
+    document.getElementById('setup-peer-review-btn').addEventListener('click', setupPeerReviews);
+    document.getElementById('export-grades-btn').addEventListener('click', exportGrades);
+    document.getElementById('clear-cache-btn').addEventListener('click', clearGradingCache);
+    
+    // Modal event listeners
+    document.getElementById('cancel-rubric-btn').addEventListener('click', closeCreateRubricModal);
+    document.getElementById('save-rubric-btn').addEventListener('click', saveRubric);
+    document.getElementById('add-criteria-btn').addEventListener('click', addCriteria);
+    
+    document.getElementById('cancel-auto-grade-btn').addEventListener('click', closeAutoGradeModal);
+    document.getElementById('start-auto-grade-btn').addEventListener('click', startAutoGrading);
+    
+    async function loadGradingDashboard() {
+        try {
+            // Load rubrics
+            const rubrics = await fetch('/api/grading/rubrics');
+            const rubricsData = await rubrics.json();
+            displayRubrics(rubricsData.data);
+            
+            // Load grading statistics (placeholder)
+            updateGradingStats();
+            
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+    
+    function displayRubrics(rubrics) {
+        const container = document.getElementById('rubrics-list');
+        
+        container.innerHTML = rubrics.map(rubric => `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                    <h4 class="font-medium text-gray-800">${rubric.title}</h4>
+                    <p class="text-sm text-gray-600">${rubric.criteria_count} criteria, ${rubric.total_points} points</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="viewRubric('${rubric.id}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                        {{ _('View') }}
+                    </button>
+                    <button onclick="useRubric('${rubric.id}')" class="text-green-600 hover:text-green-800 text-sm">
+                        {{ _('Use') }}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function updateGradingStats() {
+        // Placeholder statistics
+        document.getElementById('pending-count').textContent = '12';
+        document.getElementById('auto-graded-count').textContent = '45';
+        document.getElementById('peer-review-count').textContent = '8';
+        document.getElementById('avg-grade').textContent = '78.5%';
+    }
+    
+    function openCreateRubricModal() {
+        document.getElementById('create-rubric-modal').classList.remove('hidden');
+        addCriteria(); // Add first criteria
+    }
+    
+    function closeCreateRubricModal() {
+        document.getElementById('create-rubric-modal').classList.add('hidden');
+        document.getElementById('rubric-form').reset();
+        document.getElementById('criteria-container').innerHTML = '';
+    }
+    
+    function addCriteria() {
+        const container = document.getElementById('criteria-container');
+        const criteriaIndex = container.children.length;
+        
+        const criteriaDiv = document.createElement('div');
+        criteriaDiv.className = 'border border-gray-200 rounded-lg p-4 mb-3';
+        criteriaDiv.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <h5 class="font-medium text-gray-700">{{ _('Criteria') }} ${criteriaIndex + 1}</h5>
+                <button type="button" onclick="removeCriteria(this)" class="text-red-600 hover:text-red-800 text-sm">
+                    {{ _('Remove') }}
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">{{ _('Name') }}</label>
+                    <input type="text" class="criteria-name w-full px-2 py-1 border border-gray-300 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">{{ _('Points') }}</label>
+                    <input type="number" class="criteria-points w-full px-2 py-1 border border-gray-300 rounded text-sm" min="1" max="100" required>
+                </div>
+            </div>
+            <div class="mt-2">
+                <label class="block text-sm text-gray-600 mb-1">{{ _('Description') }}</label>
+                <textarea class="criteria-description w-full px-2 py-1 border border-gray-300 rounded text-sm" rows="2" required></textarea>
+            </div>
+        `;
+        
+        container.appendChild(criteriaDiv);
+    }
+    
+    function removeCriteria(button) {
+        button.closest('.border').remove();
+    }
+    
+    async function saveRubric() {
+        try {
+            const title = document.getElementById('rubric-title').value;
+            const description = document.getElementById('rubric-description').value;
+            
+            const criteria = [];
+            const criteriaElements = document.querySelectorAll('#criteria-container > div');
+            
+            criteriaElements.forEach(element => {
+                const name = element.querySelector('.criteria-name').value;
+                const points = parseInt(element.querySelector('.criteria-points').value);
+                const desc = element.querySelector('.criteria-description').value;
+                
+                criteria.push({
+                    name: name,
+                    description: desc,
+                    points: points,
+                    performance_levels: {
+                        excellent: { description: 'Excellent work', points_range: [Math.floor(points * 0.9), points] },
+                        good: { description: 'Good work', points_range: [Math.floor(points * 0.8), Math.floor(points * 0.89)] },
+                        satisfactory: { description: 'Satisfactory work', points_range: [Math.floor(points * 0.7), Math.floor(points * 0.79)] },
+                        needs_improvement: { description: 'Needs improvement', points_range: [0, Math.floor(points * 0.69)] }
+                    }
+                });
+            });
+            
+            const response = await fetch('/api/grading/rubrics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    criteria: criteria
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('{{ _("Rubric created successfully!") }}');
+                closeCreateRubricModal();
+                loadGradingDashboard();
+            } else {
+                alert('{{ _("Error creating rubric: ") }}' + result.error);
+            }
+            
+        } catch (error) {
+            console.error('Error saving rubric:', error);
+            alert('{{ _("Failed to save rubric") }}');
+        }
+    }
+    
+    function openAutoGradeModal() {
+        document.getElementById('auto-grade-modal').classList.remove('hidden');
+        // Load assignments and rubrics for selection
+    }
+    
+    function closeAutoGradeModal() {
+        document.getElementById('auto-grade-modal').classList.add('hidden');
+    }
+    
+    function startAutoGrading() {
+        alert('{{ _("Auto-grading feature will be implemented") }}');
+        closeAutoGradeModal();
+    }
+    
+    function setupPeerReviews() {
+        alert('{{ _("Peer review setup feature will be implemented") }}');
+    }
+    
+    function exportGrades() {
+        alert('{{ _("Grade export feature will be implemented") }}');
+    }
+    
+    async function clearGradingCache() {
+        try {
+            const response = await fetch('/api/grading/cache', { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('{{ _("Grading cache cleared successfully") }}');
+            } else {
+                alert('{{ _("Error clearing cache") }}');
+            }
+        } catch (error) {
+            console.error('Error clearing cache:', error);
+            alert('{{ _("Failed to clear cache") }}');
+        }
+    }
+    
+    // Global functions for rubric actions
+    window.viewRubric = function(rubricId) {
+        window.open(`/api/grading/rubric/${rubricId}`, '_blank');
+    };
+    
+    window.useRubric = function(rubricId) {
+        // Implement rubric usage
+        alert(`{{ _("Using rubric: ") }}${rubricId}`);
+    };
+    
+    window.removeCriteria = removeCriteria;
+});
+</script>
+{% endblock %}

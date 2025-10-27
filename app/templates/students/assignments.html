@@ -1,0 +1,340 @@
+{% extends "base/layout.html" %}
+
+{% block title %}{{ translate_term('my_assignments') }} - SACEL{% endblock %}
+
+{% block dashboard_content %}
+<!-- Debug Information -->
+<div class="content-debug mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-2">Assignments Debug Info</h2>
+    <p class="text-gray-600">
+        Total assignments found: {{ assignments|length if assignments else 0 }}
+    </p>
+    <p class="text-gray-600">
+        Submissions dict keys: {{ submissions.keys()|list if submissions else 'None' }}
+    </p>
+    {% if assignments %}
+        <p class="text-gray-600">First assignment: {{ assignments[0].title if assignments[0] else 'None' }}</p>
+    {% endif %}
+</div>
+
+<!-- Stats Bar -->
+    {% if assignments %}
+    <div class="max-w-6xl mx-auto mt-6 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Total Assignments -->
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">{{ assignments|length }}</div>
+                    <div class="text-sm text-gray-600">{{ translate_term('total_assignments') }}</div>
+                </div>
+                
+                <!-- Pending Submissions -->
+                {% set pending = assignments|rejectattr('id', 'in', submissions.keys())|list %}
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-orange-600">{{ pending|length }}</div>
+                    <div class="text-sm text-gray-600">{{ translate_term('pending') }}</div>
+                </div>
+                
+                <!-- Submitted -->
+                {% set submitted = assignments|selectattr('id', 'in', submissions.keys())|list %}
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">{{ submitted|length }}</div>
+                    <div class="text-sm text-gray-600">{{ translate_term('submitted') }}</div>
+                </div>
+                
+                <!-- Average Score -->
+                {% set graded = submissions.values()|selectattr('percentage')|list %}
+                <div class="text-center">
+                    {% if graded %}
+                        {% set avg_score = (graded|sum(attribute='percentage') / graded|length)|round(1) %}
+                        <div class="text-2xl font-bold text-purple-600">{{ avg_score }}%</div>
+                    {% else %}
+                        <div class="text-2xl font-bold text-gray-400">--</div>
+                    {% endif %}
+                    <div class="text-sm text-gray-600">{{ translate_term('average_score') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Content -->
+    <div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        {% if assignments %}
+            <!-- Filter/Sort Options -->
+            <div class="bg-white shadow rounded-lg mb-6 p-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">{{ translate_term('filter_by') }}:</label>
+                        <select id="statusFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">{{ translate_term('all') }}</option>
+                            <option value="pending">{{ translate_term('pending') }}</option>
+                            <option value="submitted">{{ translate_term('submitted') }}</option>
+                            <option value="graded">{{ translate_term('graded') }}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">{{ translate_term('subject') }}:</label>
+                        <select id="subjectFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">{{ translate_term('all_subjects') }}</option>
+                            {% for assignment in assignments %}
+                                {% if assignment.subject not in (assignments|map(attribute='subject')|list)[:loop.index-1] %}
+                                    <option value="{{ assignment.subject }}">{{ assignment.subject }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">{{ translate_term('sort_by') }}:</label>
+                        <select id="sortOrder" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="due_date_asc">{{ translate_term('due_date_earliest') }}</option>
+                            <option value="due_date_desc">{{ translate_term('due_date_latest') }}</option>
+                            <option value="assigned_date_desc">{{ translate_term('recently_assigned') or 'Recently Created' }}</option>
+                            <option value="title_asc">{{ translate_term('title_a_z') }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignments Grid -->
+            <div id="assignmentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for assignment in assignments %}
+                    {% set submission = submissions.get(assignment.id) %}
+                    {% set is_overdue = assignment.due_date and assignment.due_date.date() < (now.date() if now else assignment.due_date.date()) %}
+                    {% set status = 'overdue' if (is_overdue and not submission) else ('graded' if (submission and submission.percentage is not none) else ('submitted' if submission else 'pending')) %}
+                    
+                    <div class="assignment-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer" 
+                         data-status="{{ status }}" 
+                         data-subject="{{ assignment.subject }}" 
+                         data-due-date="{{ assignment.due_date.isoformat() }}"
+                         data-assigned-date="{{ assignment.created_at.isoformat() }}"
+                         data-title="{{ assignment.title }}"
+                         onclick="viewAssignment({{ assignment.id }})">
+                        
+                        <!-- Assignment Header -->
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900 mb-1">{{ assignment.title }}</h3>
+                                    <p class="text-sm text-gray-600">{{ assignment.subject }} • {{ translate_term('grade') }} {{ assignment.grade }}</p>
+                                </div>
+                                
+                                <!-- Status Badge -->
+                                {% if status == 'pending' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        <i class="fas fa-clock mr-1"></i>{{ translate_term('pending') }}
+                                    </span>
+                                {% elif status == 'submitted' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-check mr-1"></i>{{ translate_term('submitted') }}
+                                    </span>
+                                {% elif status == 'graded' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-star mr-1"></i>{{ submission.percentage }}%
+                                    </span>
+                                {% elif status == 'overdue' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ translate_term('overdue') }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Assignment Content -->
+                        <div class="p-4">
+                            <!-- Assignment Subject & AI Badge -->
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="fas fa-book mr-1"></i>
+                                    {{ assignment.subject }}
+                                </span>
+                                
+                                {% if assignment.ai_generated_content %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                        <i class="fas fa-robot mr-1"></i>{{ translate_term('ai_generated') or 'AI Generated' }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Description -->
+                            {% if assignment.description %}
+                                <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ assignment.description }}</p>
+                            {% endif %}
+                            
+                            <!-- Due Date & Time Info -->
+                            <div class="space-y-2">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                                    <span>{{ translate_term('assigned') or 'Assigned' }}: {{ assignment.created_at.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                
+                                <div class="flex items-center text-sm {{ 'text-red-600' if is_overdue else 'text-gray-600' }}">
+                                    <i class="fas fa-clock mr-2 {{ 'text-red-500' if is_overdue else 'text-gray-400' }}"></i>
+                                    <span>{{ translate_term('due') }}: {{ assignment.due_date.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                                </div>
+                                
+                                {% if assignment.total_marks %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-star mr-2 text-gray-400"></i>
+                                        <span>{{ translate_term('total_marks') }}: {{ assignment.total_marks }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Assignment Footer -->
+                        <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                            <div class="flex items-center justify-between">
+                                {% if submission %}
+                                    <div class="text-xs text-gray-500">
+                                        {{ translate_term('submitted') }}: {{ submission.submitted_at.strftime('%b %d, %Y') if submission.submitted_at else translate_term('draft') }}
+                                    </div>
+                                {% else %}
+                                    <div class="text-xs text-gray-500">
+                                        {{ translate_term('not_submitted') }}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if status == 'pending' and not is_overdue %}
+                                    <button class="text-sm text-blue-600 hover:text-blue-700 font-medium" 
+                                            onclick="event.stopPropagation(); submitAssignment({{ assignment.id }})">
+                                        {{ translate_term('start_assignment') }} →
+                                    </button>
+                                {% elif status == 'submitted' %}
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-check-circle mr-1"></i>{{ translate_term('completed') }}
+                                    </span>
+                                {% elif status == 'graded' %}
+                                    <span class="text-sm text-purple-600 font-medium">
+                                        {{ translate_term('view_feedback') }} →
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- No Results Message -->
+            <div id="noResults" class="hidden text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <h3 class="mt-2 text-lg font-medium text-gray-900">{{ translate_term('no_assignments_found') }}</h3>
+                <p class="mt-1 text-sm text-gray-500">{{ translate_term('try_different_filter') }}</p>
+            </div>
+            
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-clipboard-list text-3xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">{{ translate_term('no_assignments_yet') }}</h3>
+                <p class="text-gray-600 mb-6">{{ translate_term('assignments_will_appear_here') }}</p>
+                <a href="{{ url_for('student_portal.dashboard') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-home mr-2"></i>{{ translate_term('return_to_dashboard') }}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter and sort functionality
+    const statusFilter = document.getElementById('statusFilter');
+    const subjectFilter = document.getElementById('subjectFilter');
+    const sortOrder = document.getElementById('sortOrder');
+    const assignmentCards = document.querySelectorAll('.assignment-card');
+    const noResults = document.getElementById('noResults');
+    const assignmentsGrid = document.getElementById('assignmentsGrid');
+
+    function filterAndSortAssignments() {
+        const statusValue = statusFilter?.value || 'all';
+        const subjectValue = subjectFilter?.value || 'all';
+        const sortValue = sortOrder?.value || 'due_date_asc';
+        
+        // Convert NodeList to Array for sorting
+        const cardsArray = Array.from(assignmentCards);
+        
+        // Filter
+        const filteredCards = cardsArray.filter(card => {
+            const status = card.dataset.status;
+            const subject = card.dataset.subject;
+            
+            const statusMatch = statusValue === 'all' || status === statusValue;
+            const subjectMatch = subjectValue === 'all' || subject === subjectValue;
+            
+            return statusMatch && subjectMatch;
+        });
+        
+        // Sort
+        filteredCards.sort((a, b) => {
+            switch(sortValue) {
+                case 'due_date_asc':
+                    return new Date(a.dataset.dueDate) - new Date(b.dataset.dueDate);
+                case 'due_date_desc':
+                    return new Date(b.dataset.dueDate) - new Date(a.dataset.dueDate);
+                case 'assigned_date_desc':
+                    return new Date(b.dataset.assignedDate) - new Date(a.dataset.assignedDate);
+                case 'title_asc':
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                default:
+                    return 0;
+            }
+        });
+        
+        // Hide all cards
+        assignmentCards.forEach(card => card.style.display = 'none');
+        
+        // Show filtered and sorted cards
+        if (filteredCards.length > 0) {
+            filteredCards.forEach(card => {
+                card.style.display = 'block';
+                assignmentsGrid.appendChild(card); // Re-append in sorted order
+            });
+            noResults.classList.add('hidden');
+        } else {
+            noResults.classList.remove('hidden');
+        }
+    }
+
+    // Event listeners
+    statusFilter?.addEventListener('change', filterAndSortAssignments);
+    subjectFilter?.addEventListener('change', filterAndSortAssignments);
+    sortOrder?.addEventListener('change', filterAndSortAssignments);
+    
+    // Initial sort
+    filterAndSortAssignments();
+});
+
+function viewAssignment(assignmentId) {
+    window.location.href = `/students/assignments/${assignmentId}`;
+}
+
+function submitAssignment(assignmentId) {
+    window.location.href = `/students/assignments/${assignmentId}/submit`;
+}
+</script>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.assignment-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.assignment-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

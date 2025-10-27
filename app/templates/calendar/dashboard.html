@@ -1,0 +1,1153 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Calendar & Scheduling - SACEL{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
+<style>
+    .calendar-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .fc-event {
+        border: none !important;
+        border-radius: 4px !important;
+        padding: 2px 4px !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .fc-event.event-assignment {
+        background-color: #f59e0b !important;
+        color: white !important;
+    }
+    
+    .fc-event.event-exam {
+        background-color: #ef4444 !important;
+        color: white !important;
+    }
+    
+    .fc-event.event-class {
+        background-color: #3b82f6 !important;
+        color: white !important;
+    }
+    
+    .fc-event.event-meeting {
+        background-color: #10b981 !important;
+        color: white !important;
+    }
+    
+    .fc-event.event-personal {
+        background-color: #8b5cf6 !important;
+        color: white !important;
+    }
+    
+    .fc-event.event-holiday {
+        background-color: #f97316 !important;
+        color: white !important;
+    }
+    
+    .fc-event.priority-high {
+        box-shadow: 0 0 0 2px #f59e0b !important;
+    }
+    
+    .fc-event.priority-urgent {
+        box-shadow: 0 0 0 2px #ef4444 !important;
+        animation: urgentPulse 2s infinite;
+    }
+    
+    @keyframes urgentPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .schedule-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: shadow 0.2s ease;
+    }
+    
+    .schedule-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .time-slot {
+        background-color: #f3f4f6;
+        border-radius: 4px;
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .upcoming-event {
+        border-left: 4px solid #3b82f6;
+        background-color: #eff6ff;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.2s ease;
+    }
+    
+    .upcoming-event:hover {
+        background-color: #dbeafe;
+        transform: translateX(4px);
+    }
+    
+    .event-modal {
+        max-width: 600px;
+    }
+    
+    .reminder-badge {
+        background-color: #fbbf24;
+        color: #92400e;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+    }
+    
+    .availability-grid {
+        display: grid;
+        grid-template-columns: auto repeat(7, 1fr);
+        gap: 1px;
+        background-color: #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .availability-cell {
+        background-color: white;
+        padding: 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    
+    .availability-cell:hover {
+        background-color: #f3f4f6;
+    }
+    
+    .availability-cell.available {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    
+    .availability-cell.unavailable {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .legend-color {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 2px;
+    }
+    
+    .filter-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-btn.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    
+    .filter-btn:hover {
+        background-color: #f3f4f6;
+    }
+    
+    .filter-btn.active:hover {
+        background-color: #2563eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Calendar & Scheduling</h1>
+            <p class="text-gray-600 mt-2">Manage your events, assignments, and schedule</p>
+        </div>
+        <div class="flex space-x-4">
+            <button onclick="openEventModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>New Event
+            </button>
+            <button onclick="showUpcomingEvents()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-clock mr-2"></i>Upcoming
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Bar -->
+    <div id="notificationBar" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-800" id="notificationText"></p>
+            </div>
+            <div class="ml-auto pl-3">
+                <button onclick="hideNotification()" class="text-yellow-400 hover:text-yellow-600" title="Close notification">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Type Legend -->
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color bg-yellow-500"></div>
+            <span class="text-sm">Assignments</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-red-500"></div>
+            <span class="text-sm">Exams</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-blue-500"></div>
+            <span class="text-sm">Classes</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-green-500"></div>
+            <span class="text-sm">Meetings</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-purple-500"></div>
+            <span class="text-sm">Personal</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-orange-500"></div>
+            <span class="text-sm">Holidays</span>
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all" onclick="filterEvents('all')">All Events</button>
+        <button class="filter-btn" data-filter="assignment" onclick="filterEvents('assignment')">Assignments</button>
+        <button class="filter-btn" data-filter="exam" onclick="filterEvents('exam')">Exams</button>
+        <button class="filter-btn" data-filter="class" onclick="filterEvents('class')">Classes</button>
+        <button class="filter-btn" data-filter="meeting" onclick="filterEvents('meeting')">Meetings</button>
+        <button class="filter-btn" data-filter="personal" onclick="filterEvents('personal')">Personal</button>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="bg-white rounded-lg shadow-lg">
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6">
+                <button onclick="showTab('calendar')" class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                    <i class="fas fa-calendar mr-2"></i>Calendar View
+                </button>
+                <button onclick="showTab('schedule')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-clock mr-2"></i>Class Schedule
+                </button>
+                <button onclick="showTab('exams')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-clipboard-list mr-2"></i>Exam Schedule
+                </button>
+                <button onclick="showTab('availability')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-user-clock mr-2"></i>Availability
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- Calendar Tab -->
+            <div id="calendarTab" class="tab-content">
+                <div class="calendar-container">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- Schedule Tab -->
+            <div id="scheduleTab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900">Class Schedule</h3>
+                    <div class="flex space-x-2">
+                        <label for="weekSelector" class="sr-only">Select week</label>
+                        <select id="weekSelector" class="px-3 py-2 border border-gray-300 rounded-md" title="Select week to view">
+                            <option value="0">This Week</option>
+                            <option value="1">Next Week</option>
+                            <option value="-1">Last Week</option>
+                        </select>
+                        <button onclick="loadSchedule()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div id="scheduleGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Schedule items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Exams Tab -->
+            <div id="examsTab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900">Exam Schedule</h3>
+                    <div class="flex space-x-2">
+                        <label for="examStartDate" class="sr-only">Start date</label>
+                        <input type="date" id="examStartDate" class="px-3 py-2 border border-gray-300 rounded-md" title="Exam start date">
+                        <label for="examEndDate" class="sr-only">End date</label>
+                        <input type="date" id="examEndDate" class="px-3 py-2 border border-gray-300 rounded-md" title="Exam end date">
+                        <button onclick="loadExamSchedule()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Filter
+                        </button>
+                    </div>
+                </div>
+
+                <div id="examsList" class="space-y-4">
+                    <!-- Exam items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Availability Tab -->
+            <div id="availabilityTab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900">My Availability</h3>
+                    <button onclick="openAvailabilityModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Set Availability
+                    </button>
+                </div>
+
+                <div class="availability-grid mb-6">
+                    <div class="availability-cell font-semibold">Time</div>
+                    <div class="availability-cell font-semibold">Mon</div>
+                    <div class="availability-cell font-semibold">Tue</div>
+                    <div class="availability-cell font-semibold">Wed</div>
+                    <div class="availability-cell font-semibold">Thu</div>
+                    <div class="availability-cell font-semibold">Fri</div>
+                    <div class="availability-cell font-semibold">Sat</div>
+                    <div class="availability-cell font-semibold">Sun</div>
+                    <!-- Time slots will be generated here -->
+                </div>
+
+                <div class="text-sm text-gray-600">
+                    <p><strong>How to use:</strong> Click on time slots to toggle your availability. Green = Available, Red = Unavailable</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events Sidebar -->
+    <div id="upcomingSidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900">Upcoming Events</h3>
+                <button onclick="hideUpcomingEvents()" class="text-gray-400 hover:text-gray-600" title="Close sidebar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="upcomingEventsList" class="p-6 overflow-y-auto h-full">
+            <!-- Upcoming events will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Event Modal -->
+<div id="eventModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto event-modal bg-white rounded-lg shadow-xl">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Create Event</h3>
+            <button onclick="closeEventModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" title="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="eventForm" class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventTitle">Title</label>
+                    <input type="text" id="eventTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Event title" placeholder="Enter event title" required>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventDescription">Description</label>
+                    <textarea id="eventDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Event description" placeholder="Enter event description"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventStartDateTime">Start Date & Time</label>
+                    <input type="datetime-local" id="eventStartDateTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Event start date and time" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventEndDateTime">End Date & Time</label>
+                    <input type="datetime-local" id="eventEndDateTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Event end date and time">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventType">Event Type</label>
+                    <select id="eventType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Select event type">
+                        <option value="personal">Personal</option>
+                        <option value="meeting">Meeting</option>
+                        <option value="class">Class</option>
+                        <option value="exam">Exam</option>
+                        <option value="assignment">Assignment</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventPriority">Priority</label>
+                    <select id="eventPriority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Select event priority">
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="eventLocation">Location</label>
+                    <input type="text" id="eventLocation" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" title="Event location" placeholder="Enter event location">
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Attendees (User IDs, comma-separated)</label>
+                    <input type="text" id="eventAttendees" placeholder="2, 3, 4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reminders</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="reminder15" class="rounded">
+                            <label for="reminder15" class="text-sm">15 minutes before</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="reminder60" class="rounded">
+                            <label for="reminder60" class="text-sm">1 hour before</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="reminder1440" class="rounded">
+                            <label for="reminder1440" class="text-sm">1 day before</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+            <button onclick="closeEventModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                Cancel
+            </button>
+            <button onclick="saveEvent()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Save Event
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="text-gray-700">Loading...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+// Calendar & Scheduling JavaScript
+class CalendarManager {
+    constructor() {
+        this.calendar = null;
+        this.currentFilter = 'all';
+        this.events = [];
+        this.init();
+    }
+    
+    init() {
+        this.initializeCalendar();
+        this.loadEvents();
+        this.setupEventListeners();
+        
+        // Load initial data
+        this.loadSchedule();
+        this.loadExamSchedule();
+        this.loadAvailability();
+        
+        // Set default exam date range
+        const today = new Date();
+        const oneMonthLater = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
+        
+        document.getElementById('examStartDate').value = today.toISOString().split('T')[0];
+        document.getElementById('examEndDate').value = oneMonthLater.toISOString().split('T')[0];
+    }
+    
+    initializeCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        
+        this.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: (info, successCallback, failureCallback) => {
+                this.fetchEvents(info.startStr, info.endStr)
+                    .then(events => successCallback(events))
+                    .catch(error => failureCallback(error));
+            },
+            eventClick: (info) => {
+                this.showEventDetails(info.event);
+            },
+            dateClick: (info) => {
+                this.openEventModal(info.dateStr);
+            },
+            eventDidMount: (info) => {
+                // Add custom classes based on event type and priority
+                const event = info.event;
+                const eventType = event.extendedProps.event_type || 'personal';
+                const priority = event.extendedProps.priority || 'normal';
+                
+                info.el.classList.add(`event-${eventType}`);
+                if (priority !== 'normal') {
+                    info.el.classList.add(`priority-${priority}`);
+                }
+            },
+            height: 'auto',
+            nowIndicator: true,
+            selectable: true,
+            selectMirror: true,
+            dayMaxEvents: true
+        });
+        
+        this.calendar.render();
+    }
+    
+    async fetchEvents(startStr, endStr) {
+        try {
+            const response = await fetch(`/api/calendar/events?start_date=${startStr}&end_date=${endStr}&include_assignments=true`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.events = data.events;
+                return this.filterEventsForCalendar(data.events);
+            } else {
+                throw new Error(data.error || 'Failed to fetch events');
+            }
+        } catch (error) {
+            console.error('Error fetching events:', error);
+            this.showNotification('Error loading calendar events: ' + error.message, 'error');
+            return [];
+        }
+    }
+    
+    filterEventsForCalendar(events) {
+        let filteredEvents = events;
+        
+        // Apply current filter
+        if (this.currentFilter !== 'all') {
+            filteredEvents = events.filter(event => event.event_type === this.currentFilter);
+        }
+        
+        return filteredEvents.map(event => ({
+            id: event.id,
+            title: event.title,
+            start: event.start_datetime,
+            end: event.end_datetime,
+            description: event.description,
+            extendedProps: {
+                event_type: event.event_type,
+                priority: event.priority,
+                location: event.location,
+                creator_id: event.creator_id,
+                is_creator: event.is_creator,
+                attendee_status: event.attendee_status,
+                metadata: event.metadata
+            }
+        }));
+    }
+    
+    async loadEvents() {
+        this.showLoading();
+        try {
+            this.calendar.refetchEvents();
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    setupEventListeners() {
+        // Week selector change
+        document.getElementById('weekSelector').addEventListener('change', () => {
+            this.loadSchedule();
+        });
+        
+        // Exam date filters
+        document.getElementById('examStartDate').addEventListener('change', () => {
+            this.loadExamSchedule();
+        });
+        
+        document.getElementById('examEndDate').addEventListener('change', () => {
+            this.loadExamSchedule();
+        });
+    }
+    
+    filterEvents(filter) {
+        this.currentFilter = filter;
+        
+        // Update filter button styles
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+        
+        // Refresh calendar with new filter
+        this.calendar.refetchEvents();
+    }
+    
+    async loadSchedule() {
+        try {
+            const weekOffset = document.getElementById('weekSelector').value;
+            const response = await fetch(`/api/calendar/schedules/class?week=${weekOffset}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderSchedule(data.schedules);
+            } else {
+                this.showNotification('Error loading schedule: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error loading schedule: ' + error.message, 'error');
+        }
+    }
+    
+    renderSchedule(schedules) {
+        const container = document.getElementById('scheduleGrid');
+        
+        if (schedules.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center text-gray-500 py-8">
+                    <i class="fas fa-calendar-alt text-4xl mb-4"></i>
+                    <p>No scheduled classes found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Group schedules by day
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const schedulesByDay = {};
+        
+        schedules.forEach(schedule => {
+            const day = dayNames[schedule.day_of_week];
+            if (!schedulesByDay[day]) {
+                schedulesByDay[day] = [];
+            }
+            schedulesByDay[day].push(schedule);
+        });
+        
+        container.innerHTML = Object.entries(schedulesByDay).map(([day, daySchedules]) => `
+            <div class="schedule-card p-4">
+                <h4 class="font-semibold text-gray-900 mb-3">${day}</h4>
+                <div class="space-y-2">
+                    ${daySchedules.map(schedule => `
+                        <div class="time-slot">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-medium text-sm">${schedule.subject}</span>
+                                <span class="text-xs text-gray-500">${schedule.start_time} - ${schedule.end_time}</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                ${schedule.name}
+                                ${schedule.room ? ` • Room ${schedule.room}` : ''}
+                                ${schedule.teacher ? ` • ${schedule.teacher}` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async loadExamSchedule() {
+        try {
+            const startDate = document.getElementById('examStartDate').value;
+            const endDate = document.getElementById('examEndDate').value;
+            
+            let url = '/api/calendar/schedules/exam';
+            if (startDate && endDate) {
+                url += `?start_date=${startDate}&end_date=${endDate}`;
+            }
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderExamSchedule(data.exams);
+            } else {
+                this.showNotification('Error loading exam schedule: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error loading exam schedule: ' + error.message, 'error');
+        }
+    }
+    
+    renderExamSchedule(exams) {
+        const container = document.getElementById('examsList');
+        
+        if (exams.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-clipboard-list text-4xl mb-4"></i>
+                    <p>No exams scheduled for this period</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = exams.map(exam => `
+            <div class="schedule-card p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 text-lg">${exam.name}</h4>
+                        <p class="text-gray-600">${exam.subject} • Grade ${exam.grade_level}</p>
+                    </div>
+                    <span class="bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full">${exam.exam_type}</span>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-700">Date:</span>
+                        <p class="text-gray-900">${this.formatDate(exam.exam_date)}</p>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Time:</span>
+                        <p class="text-gray-900">${exam.start_time} - ${exam.end_time}</p>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Duration:</span>
+                        <p class="text-gray-900">${exam.duration_minutes} minutes</p>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Max Marks:</span>
+                        <p class="text-gray-900">${exam.max_marks}</p>
+                    </div>
+                </div>
+                
+                ${exam.room ? `
+                    <div class="mt-4 text-sm">
+                        <span class="font-medium text-gray-700">Room:</span>
+                        <span class="text-gray-900">${exam.room}</span>
+                    </div>
+                ` : ''}
+                
+                ${exam.teacher && !exam.is_creator ? `
+                    <div class="mt-2 text-sm">
+                        <span class="font-medium text-gray-700">Teacher:</span>
+                        <span class="text-gray-900">${exam.teacher}</span>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+    
+    async loadAvailability() {
+        try {
+            const response = await fetch('/api/calendar/availability');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderAvailability(data.availability);
+            } else {
+                this.showNotification('Error loading availability: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error loading availability: ' + error.message, 'error');
+        }
+    }
+    
+    renderAvailability(availabilitySlots) {
+        const grid = document.querySelector('.availability-grid');
+        const timeSlots = [];
+        
+        // Generate time slots from 8 AM to 6 PM
+        for (let hour = 8; hour <= 18; hour++) {
+            timeSlots.push({
+                time: `${hour.toString().padStart(2, '0')}:00`,
+                hour: hour
+            });
+        }
+        
+        // Clear existing time slots
+        const existingTimeSlots = grid.querySelectorAll('.time-slot-row');
+        existingTimeSlots.forEach(slot => slot.remove());
+        
+        // Generate availability grid
+        timeSlots.forEach(slot => {
+            // Time label
+            const timeCell = document.createElement('div');
+            timeCell.className = 'availability-cell time-slot-row font-medium';
+            timeCell.textContent = slot.time;
+            grid.appendChild(timeCell);
+            
+            // Days of week
+            for (let day = 0; day < 7; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'availability-cell time-slot-row';
+                dayCell.dataset.day = day;
+                dayCell.dataset.hour = slot.hour;
+                
+                // Check if there's an availability slot for this time
+                const availability = availabilitySlots.find(avail => 
+                    avail.day_of_week === day && 
+                    this.timeInRange(slot.time, avail.start_time, avail.end_time)
+                );
+                
+                if (availability) {
+                    dayCell.classList.add(availability.is_available ? 'available' : 'unavailable');
+                    dayCell.innerHTML = '<i class="fas fa-check"></i>';
+                } else {
+                    dayCell.innerHTML = '<i class="fas fa-minus text-gray-400"></i>';
+                }
+                
+                dayCell.addEventListener('click', () => this.toggleAvailability(day, slot.hour));
+                grid.appendChild(dayCell);
+            }
+        });
+    }
+    
+    timeInRange(time, startTime, endTime) {
+        const [hour] = time.split(':').map(Number);
+        const [startHour] = startTime.split(':').map(Number);
+        const [endHour] = endTime.split(':').map(Number);
+        
+        return hour >= startHour && hour < endHour;
+    }
+    
+    async toggleAvailability(day, hour) {
+        try {
+            const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+            const endTimeStr = `${(hour + 1).toString().padStart(2, '0')}:00`;
+            
+            const response = await fetch('/api/calendar/availability', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    day_of_week: day,
+                    start_time: timeStr,
+                    end_time: endTimeStr,
+                    is_available: true
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.loadAvailability(); // Refresh the grid
+            } else {
+                this.showNotification('Error updating availability: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error updating availability: ' + error.message, 'error');
+        }
+    }
+    
+    async showUpcomingEvents() {
+        try {
+            const response = await fetch('/api/calendar/events/upcoming?days=7');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderUpcomingEvents(data.events);
+                document.getElementById('upcomingSidebar').classList.remove('translate-x-full');
+            } else {
+                this.showNotification('Error loading upcoming events: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error loading upcoming events: ' + error.message, 'error');
+        }
+    }
+    
+    renderUpcomingEvents(events) {
+        const container = document.getElementById('upcomingEventsList');
+        
+        if (events.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-calendar-check text-4xl mb-4"></i>
+                    <p>No upcoming events in the next 7 days</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = events.map(event => `
+            <div class="upcoming-event p-4 mb-4">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-medium text-gray-900">${event.title}</h4>
+                    <span class="text-xs text-gray-500">${this.getTimeUntil(event.start_datetime)}</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">${this.formatDateTime(event.start_datetime)}</p>
+                ${event.location ? `<p class="text-sm text-gray-600"><i class="fas fa-map-marker-alt mr-1"></i>${event.location}</p>` : ''}
+                <div class="flex justify-between items-center mt-3">
+                    <span class="inline-block bg-${this.getEventTypeColor(event.event_type)}-100 text-${this.getEventTypeColor(event.event_type)}-800 text-xs px-2 py-1 rounded">${event.event_type}</span>
+                    ${event.priority !== 'normal' ? `<span class="reminder-badge">${event.priority} priority</span>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    hideUpcomingEvents() {
+        document.getElementById('upcomingSidebar').classList.add('translate-x-full');
+    }
+    
+    openEventModal(dateStr = null) {
+        if (dateStr) {
+            document.getElementById('eventStartDateTime').value = dateStr + 'T09:00';
+        }
+        document.getElementById('eventModal').classList.remove('hidden');
+    }
+    
+    closeEventModal() {
+        document.getElementById('eventModal').classList.add('hidden');
+        document.getElementById('eventForm').reset();
+    }
+    
+    async saveEvent() {
+        try {
+            const formData = {
+                title: document.getElementById('eventTitle').value,
+                description: document.getElementById('eventDescription').value,
+                start_datetime: document.getElementById('eventStartDateTime').value,
+                end_datetime: document.getElementById('eventEndDateTime').value,
+                event_type: document.getElementById('eventType').value,
+                priority: document.getElementById('eventPriority').value,
+                location: document.getElementById('eventLocation').value,
+                attendees: document.getElementById('eventAttendees').value
+                    .split(',')
+                    .map(id => parseInt(id.trim()))
+                    .filter(id => !isNaN(id)),
+                reminders: []
+            };
+            
+            // Add reminders
+            if (document.getElementById('reminder15').checked) {
+                formData.reminders.push({ type: 'notification', minutes_before: 15 });
+            }
+            if (document.getElementById('reminder60').checked) {
+                formData.reminders.push({ type: 'notification', minutes_before: 60 });
+            }
+            if (document.getElementById('reminder1440').checked) {
+                formData.reminders.push({ type: 'notification', minutes_before: 1440 });
+            }
+            
+            this.showLoading();
+            
+            const response = await fetch('/api/calendar/events/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Event created successfully!', 'success');
+                this.closeEventModal();
+                this.loadEvents();
+            } else {
+                this.showNotification('Error creating event: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error creating event: ' + error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    showEventDetails(event) {
+        // Simple alert for now - could be enhanced with a proper modal
+        const details = `
+Title: ${event.title}
+Date: ${this.formatDateTime(event.startStr)}
+Type: ${event.extendedProps.event_type}
+${event.extendedProps.location ? `Location: ${event.extendedProps.location}` : ''}
+${event.extendedProps.description ? `Description: ${event.extendedProps.description}` : ''}
+        `;
+        alert(details);
+    }
+    
+    // Utility methods
+    formatDate(dateStr) {
+        return new Date(dateStr).toLocaleDateString();
+    }
+    
+    formatDateTime(dateStr) {
+        return new Date(dateStr).toLocaleString();
+    }
+    
+    getTimeUntil(dateStr) {
+        const eventDate = new Date(dateStr);
+        const now = new Date();
+        const diffMs = eventDate - now;
+        
+        if (diffMs < 0) return 'Past';
+        
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        
+        if (diffDays > 0) {
+            return `${diffDays}d ${diffHours}h`;
+        } else if (diffHours > 0) {
+            return `${diffHours}h`;
+        } else {
+            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            return `${diffMinutes}m`;
+        }
+    }
+    
+    getEventTypeColor(eventType) {
+        const colors = {
+            assignment: 'yellow',
+            exam: 'red',
+            class: 'blue',
+            meeting: 'green',
+            personal: 'purple',
+            holiday: 'orange'
+        };
+        return colors[eventType] || 'gray';
+    }
+    
+    showLoading() {
+        document.getElementById('loadingSpinner').classList.remove('hidden');
+    }
+    
+    hideLoading() {
+        document.getElementById('loadingSpinner').classList.add('hidden');
+    }
+    
+    showNotification(message, type = 'info') {
+        const notificationBar = document.getElementById('notificationBar');
+        const notificationText = document.getElementById('notificationText');
+        
+        notificationText.textContent = message;
+        
+        // Update styling based on type
+        notificationBar.className = 'bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6';
+        if (type === 'success') {
+            notificationBar.className = 'bg-green-50 border border-green-200 rounded-lg p-4 mb-6';
+        } else if (type === 'error') {
+            notificationBar.className = 'bg-red-50 border border-red-200 rounded-lg p-4 mb-6';
+        }
+        
+        notificationBar.classList.remove('hidden');
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            notificationBar.classList.add('hidden');
+        }, 5000);
+    }
+    
+    hideNotification() {
+        document.getElementById('notificationBar').classList.add('hidden');
+    }
+}
+
+// Global variables
+let calendarManager;
+
+// Global functions for template events
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Tab').classList.remove('hidden');
+    event.target.classList.add('active', 'border-blue-500', 'text-blue-600');
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+}
+
+function filterEvents(filter) {
+    calendarManager.filterEvents(filter);
+}
+
+function loadSchedule() {
+    calendarManager.loadSchedule();
+}
+
+function loadExamSchedule() {
+    calendarManager.loadExamSchedule();
+}
+
+function showUpcomingEvents() {
+    calendarManager.showUpcomingEvents();
+}
+
+function hideUpcomingEvents() {
+    calendarManager.hideUpcomingEvents();
+}
+
+function openEventModal() {
+    calendarManager.openEventModal();
+}
+
+function closeEventModal() {
+    calendarManager.closeEventModal();
+}
+
+function saveEvent() {
+    calendarManager.saveEvent();
+}
+
+function openAvailabilityModal() {
+    // Placeholder for availability modal
+    alert('Availability setting modal would open here');
+}
+
+function hideNotification() {
+    calendarManager.hideNotification();
+}
+
+// Initialize calendar when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    calendarManager = new CalendarManager();
+});
+</script>
+{% endblock %}

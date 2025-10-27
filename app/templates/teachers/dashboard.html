@@ -1,0 +1,276 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Teacher Dashboard - SACEL{% endblock %}
+
+{% block dashboard_content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-4 sm:py-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Teacher Dashboard</h1>
+                        <p class="mt-1 text-sm text-gray-500">Welcome back, {{ current_user.full_name }}</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                        <a href="{{ url_for('teachers.create_assignment') }}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium text-center">
+                            <i class="fas fa-plus mr-2"></i>Create Assignment
+                        </a>
+                        <a href="{{ url_for('teachers.grading') }}" 
+                           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium text-center">
+                            <i class="fas fa-check-square mr-2"></i>Grade Submissions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+            <!-- Total Students -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-3 sm:p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-8a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 sm:ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-500 truncate">Total Students</dt>
+                                <dd class="text-sm sm:text-lg font-medium text-gray-900">{{ stats.total_students or 0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Assignments -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Assignments</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.active_assignments or 0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Grading -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Pending Grading</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.pending_grading or 0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Grade -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Class Average</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.class_average or 'N/A' }}%</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Assignments -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Assignments</h3>
+                </div>
+                <div class="p-6">
+                    {% if recent_assignments %}
+                        <div class="space-y-4">
+                            {% for assignment in recent_assignments %}
+                            <div class="flex items-center justify-between p-4 border rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">{{ assignment.title }}</h4>
+                                    <p class="text-sm text-gray-500">Due: {{ assignment.due_date.strftime('%B %d, %Y') }}</p>
+                                    <p class="text-sm text-gray-500">Subject: {{ assignment.subject }}</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                        {{ assignment.submissions_count or 0 }} submissions
+                                    </span>
+                                    <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No assignments</h3>
+                            <p class="mt-1 text-sm text-gray-500">Get started by creating your first assignment.</p>
+                            <div class="mt-6">
+                                <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
+                                    Create Assignment
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Student Performance Overview -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Student Performance</h3>
+                </div>
+                <div class="p-6">
+                    {% if student_performance %}
+                        <div class="space-y-4">
+                            {% for student in student_performance %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="h-10 w-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                        <span class="text-sm font-medium text-gray-700">
+                                            {{ student.name[:2].upper() }}
+                                        </span>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">{{ student.name }}</p>
+                                        <p class="text-sm text-gray-500">Grade {{ student.grade }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-gray-900">{{ student.average_grade }}%</p>
+                                    <p class="text-sm text-gray-500">{{ student.assignments_completed }} completed</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-8a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No students enrolled</h3>
+                            <p class="mt-1 text-sm text-gray-500">Students will appear here once they're enrolled in your classes.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <a href="{{ url_for('teachers.create_assignment') }}" 
+                       class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create Assignment
+                    </a>
+                    
+                    <a href="{{ url_for('teachers.assignments') }}" 
+                       class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        Manage Assignments
+                    </a>
+                    
+                    <a href="{{ url_for('teachers.grading') }}" 
+                       class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Grade Submissions
+                    </a>
+                    
+                    <button class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 13v-1a4 4 0 014-4h0a4 4 0 014 4v1M8 13h8m-8 0v6a2 2 0 002 2h4a2 2 0 002-2v-6m-8 0H6a2 2 0 00-2 2v6a2 2 0 002 2h2m0-6h8" />
+                        </svg>
+                        AI Question Generator
+                    </button>
+                    
+                    <button class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        View Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for quick actions
+    const quickActionButtons = document.querySelectorAll('[data-action]');
+    quickActionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.dataset.action;
+            // Handle different actions
+            switch(action) {
+                case 'create-assignment':
+                    window.location.href = '/teachers/assignments/create';
+                    break;
+                case 'grade-submissions':
+                    window.location.href = '/teachers/grading';
+                    break;
+                case 'ai-generator':
+                    window.location.href = '/teachers/ai-tools';
+                    break;
+                case 'view-reports':
+                    window.location.href = '/teachers/reports';
+                    break;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

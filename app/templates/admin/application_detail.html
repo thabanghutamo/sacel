@@ -1,0 +1,278 @@
+{% extends "base/layout.html" %}
+{% block title %}Application Details - SACEL Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div class="py-6 md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        Application Details
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Reference: {{ application.reference_number }}
+                    </p>
+                </div>
+                <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                    <a href="{{ url_for('admin.applications') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Applications
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Details -->
+    <div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Main Application Info -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Student Information -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Student Information</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Personal details of the applicant</p>
+                    </div>
+                    <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+                        <dl class="sm:divide-y sm:divide-gray-200">
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.student_first_name }} {{ application.student_last_name }}
+                                </dd>
+                            </div>
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Date of Birth</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.student_birth_date.strftime('%B %d, %Y') if application.student_birth_date else 'Not provided' }}
+                                </dd>
+                            </div>
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Grade Applying For</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    Grade {{ application.grade_applying_for }}
+                                </dd>
+                            </div>
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Previous School</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.previous_school or 'Not provided' }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Parent/Guardian Information -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Parent/Guardian Information</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Contact details of the parent or guardian</p>
+                    </div>
+                    <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+                        <dl class="sm:divide-y sm:divide-gray-200">
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.parent_first_name }} {{ application.parent_last_name }}
+                                </dd>
+                            </div>
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Email Address</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <a href="mailto:{{ application.parent_email }}" class="text-indigo-600 hover:text-indigo-500">
+                                        {{ application.parent_email }}
+                                    </a>
+                                </dd>
+                            </div>
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <a href="tel:{{ application.parent_phone }}" class="text-indigo-600 hover:text-indigo-500">
+                                        {{ application.parent_phone }}
+                                    </a>
+                                </dd>
+                            </div>
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Address</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.address or 'Not provided' }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                {% if application.medical_conditions or application.special_requirements %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Additional Information</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Medical conditions and special requirements</p>
+                    </div>
+                    <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+                        <dl class="sm:divide-y sm:divide-gray-200">
+                            {% if application.medical_conditions %}
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Medical Conditions</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.medical_conditions }}
+                                </dd>
+                            </div>
+                            {% endif %}
+                            {% if application.special_requirements %}
+                            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500">Special Requirements</dt>
+                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    {{ application.special_requirements }}
+                                </dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                
+                <!-- Status and Actions -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Application Status</h3>
+                        
+                        <!-- Current Status -->
+                        <div class="mb-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                {% if application.status == 'submitted' %}bg-yellow-100 text-yellow-800
+                                {% elif application.status == 'under_review' %}bg-blue-100 text-blue-800
+                                {% elif application.status == 'approved' %}bg-green-100 text-green-800
+                                {% elif application.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif application.status == 'waitlisted' %}bg-purple-100 text-purple-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ application.status.replace('_', ' ').title() }}
+                            </span>
+                        </div>
+
+                        <!-- Status Update Form -->
+                        <form id="statusForm" class="space-y-4">
+                            <div>
+                                <label for="newStatus" class="block text-sm font-medium text-gray-700">Update Status</label>
+                                <select id="newStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="submitted" {% if application.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                                    <option value="under_review" {% if application.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                                    <option value="approved" {% if application.status == 'approved' %}selected{% endif %}>Approved</option>
+                                    <option value="rejected" {% if application.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                    <option value="waitlisted" {% if application.status == 'waitlisted' %}selected{% endif %}>Waitlisted</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                                <textarea id="notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Add review notes...">{{ application.notes or '' }}</textarea>
+                            </div>
+                            <button type="button" onclick="updateStatus()" class="w-full bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700">
+                                Update Status
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Application Details -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Application Details</h3>
+                        
+                        <dl class="space-y-4">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">School</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ application.school.name if application.school else 'Unknown School' }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Submitted Date</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ application.submitted_at.strftime('%B %d, %Y at %I:%M %p') if application.submitted_at else 'Not available' }}
+                                </dd>
+                            </div>
+                            {% if application.reviewed_at %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Reviewed Date</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ application.reviewed_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                </dd>
+                            </div>
+                            {% endif %}
+                            {% if application.reviewer %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Reviewed By</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ application.reviewer.first_name }} {{ application.reviewer.last_name }}
+                                </dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                {% if application.documents %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Documents</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <span class="text-sm text-gray-900">Supporting Documents</span>
+                                <button class="text-indigo-600 hover:text-indigo-500 text-sm">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus() {
+    const newStatus = document.getElementById('newStatus').value;
+    const notes = document.getElementById('notes').value;
+    
+    if (confirm(`Are you sure you want to change the status to "${newStatus.replace('_', ' ')}"?`)) {
+        fetch(`/admin/applications/{{ application.id }}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                status: newStatus,
+                notes: notes
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating application: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating application');
+        });
+    }
+}
+</script>
+
+{% endblock %}

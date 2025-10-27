@@ -1,0 +1,225 @@
+{% extends "base/layout.html" %}
+
+{% block title %}API Documentation - SACEL Platform{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">📚 SACEL Platform API</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Comprehensive REST API documentation for the South African Comprehensive Education & Learning platform
+            </p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <a href="/api/docs/" class="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-200">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-500 rounded-lg p-3 mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Swagger Documentation</h3>
+                </div>
+                <p class="text-gray-600">Interactive API documentation with request/response examples and testing capabilities</p>
+            </a>
+
+            <a href="#getting-started" class="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-200">
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-500 rounded-lg p-3 mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Getting Started</h3>
+                </div>
+                <p class="text-gray-600">Quick start guide and authentication setup instructions</p>
+            </a>
+
+            <a href="#examples" class="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-200">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-500 rounded-lg p-3 mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Code Examples</h3>
+                </div>
+                <p class="text-gray-600">Sample code snippets and integration examples</p>
+            </a>
+        </div>
+
+        <!-- API Overview -->
+        <div class="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 id="getting-started" class="text-2xl font-bold text-gray-900 mb-6">🚀 Getting Started</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Authentication</h3>
+                    <p class="text-gray-600 mb-4">
+                        The SACEL API uses session-based authentication. Users must log in through the web interface to access protected endpoints.
+                    </p>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <code class="text-sm">
+                            POST /auth/login<br>
+                            Content-Type: application/json<br><br>
+                            {<br>
+                            &nbsp;&nbsp;"email": "user@example.com",<br>
+                            &nbsp;&nbsp;"password": "password123"<br>
+                            }
+                        </code>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Base URL</h3>
+                    <p class="text-gray-600 mb-4">
+                        All API endpoints are relative to the base URL:
+                    </p>
+                    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                        <code class="text-blue-800 font-mono">http://localhost:5000/api/</code>
+                    </div>
+                    <p class="text-sm text-gray-500">
+                        Replace localhost:5000 with your actual domain in production
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Endpoints Overview -->
+        <div class="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">🔗 API Endpoints</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">👤 Authentication</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><code>POST /auth/login</code> - User login</li>
+                        <li><code>POST /auth/logout</code> - User logout</li>
+                        <li><code>POST /auth/register</code> - User registration</li>
+                    </ul>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">🏫 Schools</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><code>GET /schools/</code> - List schools</li>
+                        <li><code>GET /schools/{id}</code> - Get school details</li>
+                        <li><code>POST /schools/</code> - Create school</li>
+                    </ul>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">📚 Assignments</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><code>GET /assignments/</code> - List assignments</li>
+                        <li><code>POST /assignments/</code> - Create assignment</li>
+                        <li><code>POST /assignments/{id}/submit</code> - Submit assignment</li>
+                    </ul>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">📧 Email</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><code>POST /email/send-assignment-notification</code></li>
+                        <li><code>POST /email/send-grade-notification</code></li>
+                        <li><code>POST /email/send-system-announcement</code></li>
+                    </ul>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">📁 Files</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><code>POST /files/upload</code> - Upload file</li>
+                        <li><code>GET /files/download/{id}</code> - Download file</li>
+                        <li><code>POST /files/validate</code> - Validate file</li>
+                    </ul>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">🤖 AI Tools</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><code>POST /ai/generate-assignment</code></li>
+                        <li><code>POST /ai/grade-assignment</code></li>
+                        <li><code>POST /language/translate</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="bg-white rounded-lg shadow-sm p-8">
+            <h2 id="examples" class="text-2xl font-bold text-gray-900 mb-6">💻 Code Examples</h2>
+            
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">JavaScript/Fetch Example</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                        <pre class="text-green-400 text-sm"><code>// Create a new assignment
+async function createAssignment(assignmentData) {
+    try {
+        const response = await fetch('/api/assignments/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(assignmentData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Assignment created:', result);
+            return result;
+        } else {
+            throw new Error('Failed to create assignment');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Python/Requests Example</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                        <pre class="text-blue-400 text-sm"><code>import requests
+
+# Send email notification
+def send_grade_notification(student_email, assignment_title, grade):
+    url = 'http://localhost:5000/api/email/send-grade-notification'
+    data = {
+        'student_email': student_email,
+        'assignment_title': assignment_title,
+        'grade': grade,
+        'subject': 'Mathematics'
+    }
+    
+    response = requests.post(url, json=data)
+    
+    if response.status_code == 200:
+        print('Notification sent successfully')
+        return response.json()
+    else:
+        print(f'Error: {response.status_code}')
+        return None</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-12 pt-8 border-t border-gray-200">
+            <p class="text-gray-600">
+                For more detailed information, visit the 
+                <a href="/api/docs/" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Interactive Swagger Documentation
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

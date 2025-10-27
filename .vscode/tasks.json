@@ -1,0 +1,91 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Flask Development Server",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/python.exe\" main.py",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			}
+		},
+		{
+			"label": "Install Dependencies",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/pip.exe\" install -r requirements.txt",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Run Tests",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/python.exe\" -m pytest tests/",
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Format Code (Black)",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/python.exe\" -m black .",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Database Migration (Init)",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/flask.exe\" db init",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Database Migration (Migrate)",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/flask.exe\" db migrate -m \"Auto migration\"",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Database Migration (Upgrade)",
+			"type": "shell",
+			"command": "\"C:/best project done with ai/sacel/venv/Scripts/flask.exe\" db upgrade",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		}
+	]
+}

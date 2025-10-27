@@ -1,0 +1,274 @@
+{% extends "base/layout.html" %}
+{% block title %}My Profile - SACEL{% endblock %}
+
+{% block dashboard_content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div class="py-6 md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        My Profile
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Manage your personal information and account settings
+                    </p>
+                </div>
+                <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                    <a href="{{ url_for('student_portal.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Profile Card -->
+            <div class="lg:col-span-1">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-20 w-20">
+                                <div class="h-20 w-20 rounded-full bg-gray-300 flex items-center justify-center">
+                                    <svg class="h-12 w-12 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    {{ current_user.first_name }} {{ current_user.last_name }}
+                                </h3>
+                                <p class="text-sm text-gray-500">
+                                    Student
+                                </p>
+                                {% if current_user.student %}
+                                <p class="text-sm text-gray-500">
+                                    Grade {{ current_user.student.grade }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="mt-6 bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <a href="{{ url_for('student_portal.assignments') }}" class="w-full flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                My Assignments
+                            </a>
+                            <a href="{{ url_for('student_portal.progress') }}" class="w-full flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                Progress Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="lg:col-span-2">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Personal Information</h3>
+                        
+                        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">First Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.first_name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Last Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.last_name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Email Address</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.email }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.phone or 'Not provided' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">ID Number</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.id_number or 'Not provided' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Preferred Language</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.preferred_language or 'English' }}</dd>
+                            </div>
+                            {% if current_user.student %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Student Number</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.student.student_number or 'Not assigned' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Grade</dt>
+                                <dd class="mt-1 text-sm text-gray-900">Grade {{ current_user.student.grade or 'Not assigned' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Enrollment Date</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {% if current_user.student.enrollment_date %}
+                                        {{ current_user.student.enrollment_date.strftime('%B %d, %Y') }}
+                                    {% else %}
+                                        Not provided
+                                    {% endif %}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Date of Birth</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {% if current_user.student.date_of_birth %}
+                                        {{ current_user.student.date_of_birth.strftime('%B %d, %Y') }}
+                                    {% else %}
+                                        Not provided
+                                    {% endif %}
+                                </dd>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Account Created</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {% if current_user.created_at %}
+                                        {{ current_user.created_at.strftime('%B %d, %Y') }}
+                                    {% else %}
+                                        Not available
+                                    {% endif %}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Last Login</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {% if current_user.last_login %}
+                                        {{ current_user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+                                    {% else %}
+                                        First time login
+                                    {% endif %}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- School Information -->
+                {% if current_user.school %}
+                <div class="mt-6 bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">School Information</h3>
+                        
+                        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">School Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.school.name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">School Type</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.school.school_type }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Address</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ current_user.school.address }}<br>
+                                    {{ current_user.school.city }}, {{ current_user.school.province }} {{ current_user.school.postal_code }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Contact</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    Phone: {{ current_user.school.phone or 'Not provided' }}<br>
+                                    Email: {{ current_user.school.email or 'Not provided' }}
+                                </dd>
+                            </div>
+                            {% if current_user.school.website %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Website</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    <a href="{{ current_user.school.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-500">
+                                        {{ current_user.school.website }}
+                                    </a>
+                                </dd>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Languages Offered</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ current_user.school.languages_offered or 'Not specified' }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Account Settings -->
+                <div class="mt-6 bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Account Settings</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900">Account Status</h4>
+                                    <p class="text-sm text-gray-500">Your account is currently active</p>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Active
+                                </span>
+                            </div>
+                            
+                            {% if current_user.must_change_password %}
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800">Password Change Required</h3>
+                                        <div class="mt-2 text-sm text-yellow-700">
+                                            <p>You must change your password before continuing to use the platform.</p>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="-mx-2 -my-1.5 flex">
+                                                <button type="button" class="bg-yellow-50 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100">
+                                                    Change Password
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                                <button type="button" class="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Edit Profile
+                                </button>
+                                <button type="button" class="bg-gray-300 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                    Change Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "base/layout.html" %}
+{% block title %}My Grades - SACEL{% endblock %}
+
+{% block dashboard_content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div class="py-6 md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        My Grades
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        View your academic performance and grades
+                    </p>
+                </div>
+                <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                    <a href="{{ url_for('student_portal.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grades Content -->
+    <div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Grade Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Overall Average</dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {% if grades %}
+                                        {% set total_marks = 0 %}
+                                        {% set count = 0 %}
+                                        {% for grade in grades %}
+                                            {% if grade.score %}
+                                                {% set total_marks = total_marks + grade.score %}
+                                                {% set count = count + 1 %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if count > 0 %}
+                                            {{ "%.1f"|format(total_marks / count) }}%
+                                        {% else %}
+                                            No grades yet
+                                        {% endif %}
+                                    {% else %}
+                                        No grades yet
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3h3v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Subjects</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ subjects|length if subjects else 0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Graded Assignments</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ grades|length if grades else 0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if grades and grades|length > 0 %}
+        <!-- Grades Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Grades</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Your latest assignment grades and feedback</p>
+            </div>
+            <ul class="divide-y divide-gray-200">
+                {% for grade in grades %}
+                <li>
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    {% if grade.score >= 80 %}
+                                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                            <span class="text-green-800 font-medium text-sm">A</span>
+                                        </div>
+                                    {% elif grade.score >= 70 %}
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <span class="text-blue-800 font-medium text-sm">B</span>
+                                        </div>
+                                    {% elif grade.score >= 60 %}
+                                        <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                            <span class="text-yellow-800 font-medium text-sm">C</span>
+                                        </div>
+                                    {% elif grade.score >= 50 %}
+                                        <div class="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                            <span class="text-orange-800 font-medium text-sm">D</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                            <span class="text-red-800 font-medium text-sm">F</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ grade.assignment.title if grade.assignment else 'Assignment' }}
+                                        </div>
+                                        <div class="ml-2">
+                                            {% if grade.assignment and grade.assignment.subject %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ grade.assignment.subject }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {% if grade.graded_at %}
+                                            Graded on {{ grade.graded_at.strftime('%B %d, %Y') }}
+                                        {% endif %}
+                                        {% if grade.assignment and grade.assignment.teacher %}
+                                            by {{ grade.assignment.teacher.first_name }} {{ grade.assignment.teacher.last_name }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="text-right">
+                                    <div class="text-lg font-medium text-gray-900">
+                                        {% if grade.score is not none %}
+                                            {{ grade.score }}%
+                                        {% else %}
+                                            Pending
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {% if grade.assignment %}
+                                            out of {{ grade.assignment.total_marks or 100 }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        {% if grade.feedback %}
+                        <div class="mt-3 pl-14">
+                            <div class="bg-gray-50 rounded-md p-3">
+                                <h4 class="text-sm font-medium text-gray-900 mb-1">Teacher Feedback:</h4>
+                                <p class="text-sm text-gray-700">{{ grade.feedback }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <!-- No Grades State -->
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-2a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No grades available</h3>
+            <p class="mt-1 text-sm text-gray-500">
+                You haven't received any grades yet. Complete assignments to see your grades here.
+            </p>
+            <div class="mt-6">
+                <a href="{{ url_for('student_portal.assignments') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    View Assignments
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

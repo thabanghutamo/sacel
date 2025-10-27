@@ -1,0 +1,1191 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Communication Center - SACEL{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: calc(100vh - 200px);
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .message-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .message-item {
+        transition: all 0.2s ease;
+    }
+    
+    .message-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .message-unread {
+        background-color: #eff6ff;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .notification-badge {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .forum-post {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: shadow 0.2s ease;
+    }
+    
+    .forum-post:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .priority-high {
+        border-left: 4px solid #f59e0b;
+    }
+    
+    .priority-urgent {
+        border-left: 4px solid #ef4444;
+        animation: urgentPulse 1s infinite;
+    }
+    
+    @keyframes urgentPulse {
+        0%, 100% { background-color: #fef2f2; }
+        50% { background-color: #fee2e2; }
+    }
+    
+    .chat-sidebar {
+        border-right: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+    }
+    
+    .chat-main {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #ffffff;
+    }
+    
+    .chat-input {
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem;
+        background-color: #f9fafb;
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-sent {
+        background-color: #3b82f6;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 0.25rem;
+    }
+    
+    .message-received {
+        background-color: #f3f4f6;
+        color: #1f2937;
+        border-bottom-left-radius: 0.25rem;
+    }
+    
+    .compose-modal {
+        max-width: 600px;
+    }
+    
+    .recipient-tag {
+        display: inline-block;
+        background-color: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        margin: 0.125rem;
+    }
+    
+    .attachment-preview {
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: border-color 0.2s ease;
+    }
+    
+    .attachment-preview.dragover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Communication Center</h1>
+            <p class="text-gray-600 mt-2">Manage messages, announcements, and discussions</p>
+        </div>
+        <div class="flex space-x-4">
+            <button onclick="openComposeModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>New Message
+            </button>
+            {% if current_user.role in ['admin', 'teacher'] %}
+            <button onclick="openAnnouncementModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-bullhorn mr-2"></i>Create Announcement
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notification Bar -->
+    <div id="notificationBar" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-800" id="notificationText"></p>
+            </div>
+            <div class="ml-auto pl-3">
+                <button onclick="hideNotification()" class="text-yellow-400 hover:text-yellow-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="bg-white rounded-lg shadow-lg">
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6">
+                <button onclick="showTab('messages')" class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                    <i class="fas fa-envelope mr-2"></i>Messages
+                    <span id="unreadBadge" class="notification-badge bg-red-500 text-white text-xs rounded-full px-2 py-1 ml-2">0</span>
+                </button>
+                <button onclick="showTab('forum')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-comments mr-2"></i>Forum
+                </button>
+                <button onclick="showTab('notifications')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-bell mr-2"></i>Notifications
+                    <span id="notificationsBadge" class="notification-badge bg-red-500 text-white text-xs rounded-full px-2 py-1 ml-2">0</span>
+                </button>
+                <button onclick="showTab('announcements')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-bullhorn mr-2"></i>Announcements
+                </button>
+                <button onclick="showTab('chat')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-comments mr-2"></i>Live Chat
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- Messages Tab -->
+            <div id="messagesTab" class="tab-content">
+                <div class="flex space-x-6">
+                    <!-- Message Folders -->
+                    <div class="w-1/4 bg-gray-50 rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-900 mb-4">Folders</h3>
+                        <div class="space-y-2">
+                            <button onclick="loadMessages('inbox')" class="folder-btn active w-full text-left px-3 py-2 rounded hover:bg-gray-200">
+                                <i class="fas fa-inbox mr-2"></i>Inbox <span id="inboxCount" class="float-right text-gray-500">0</span>
+                            </button>
+                            <button onclick="loadMessages('sent')" class="folder-btn w-full text-left px-3 py-2 rounded hover:bg-gray-200">
+                                <i class="fas fa-paper-plane mr-2"></i>Sent
+                            </button>
+                            <button onclick="loadMessages('drafts')" class="folder-btn w-full text-left px-3 py-2 rounded hover:bg-gray-200">
+                                <i class="fas fa-edit mr-2"></i>Drafts
+                            </button>
+                            <button onclick="loadMessages('archived')" class="folder-btn w-full text-left px-3 py-2 rounded hover:bg-gray-200">
+                                <i class="fas fa-archive mr-2"></i>Archived
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Message List -->
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-gray-900" id="folderTitle">Inbox</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="refreshMessages()" class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <input type="text" placeholder="Search messages..." class="px-3 py-1 border border-gray-300 rounded-md text-sm" id="messageSearch">
+                            </div>
+                        </div>
+                        
+                        <div id="messagesList" class="message-list space-y-3">
+                            <!-- Messages will be loaded here -->
+                        </div>
+                        
+                        <div id="messagesPagination" class="mt-6 flex justify-center">
+                            <!-- Pagination will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forum Tab -->
+            <div id="forumTab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900">Forum Discussions</h3>
+                    <button onclick="openForumPostModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>New Post
+                    </button>
+                </div>
+
+                <!-- Forum Categories -->
+                <div class="mb-6">
+                    <div class="flex space-x-4 overflow-x-auto">
+                        <button onclick="loadForumPosts()" class="forum-category-btn active whitespace-nowrap px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm">
+                            All Categories
+                        </button>
+                        <button onclick="loadForumPosts('academic')" class="forum-category-btn whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200">
+                            Academic
+                        </button>
+                        <button onclick="loadForumPosts('general')" class="forum-category-btn whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200">
+                            General
+                        </button>
+                        <button onclick="loadForumPosts('announcements')" class="forum-category-btn whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200">
+                            Announcements
+                        </button>
+                        <button onclick="loadForumPosts('help')" class="forum-category-btn whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200">
+                            Help & Support
+                        </button>
+                    </div>
+                </div>
+
+                <div id="forumPosts" class="space-y-4">
+                    <!-- Forum posts will be loaded here -->
+                </div>
+
+                <div id="forumPagination" class="mt-6 flex justify-center">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div id="notificationsTab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900">Notifications</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="markAllNotificationsRead()" class="text-blue-600 hover:text-blue-800 text-sm">
+                            Mark All Read
+                        </button>
+                        <button onclick="loadNotifications(true)" class="text-gray-600 hover:text-gray-800 text-sm">
+                            Show Unread Only
+                        </button>
+                    </div>
+                </div>
+
+                <div id="notificationsList" class="space-y-3">
+                    <!-- Notifications will be loaded here -->
+                </div>
+
+                <div id="notificationsPagination" class="mt-6 flex justify-center">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Announcements Tab -->
+            <div id="announcementsTab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900">System Announcements</h3>
+                    {% if current_user.role in ['admin', 'teacher'] %}
+                    <button onclick="openAnnouncementModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-bullhorn mr-2"></i>Create Announcement
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div id="announcementsList" class="space-y-4">
+                    <!-- Announcements will be loaded here -->
+                </div>
+
+                <div id="announcementsPagination" class="mt-6 flex justify-center">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Live Chat Tab -->
+            <div id="chatTab" class="tab-content hidden">
+                <div class="chat-container grid grid-cols-4 h-96">
+                    <!-- Chat Sidebar -->
+                    <div class="chat-sidebar col-span-1 p-4">
+                        <h3 class="font-semibold text-gray-900 mb-4">Chat Rooms</h3>
+                        <div id="chatRooms" class="space-y-2">
+                            <!-- Chat rooms will be loaded here -->
+                        </div>
+                        <button onclick="createChatRoom()" class="w-full mt-4 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                            <i class="fas fa-plus mr-2"></i>New Room
+                        </button>
+                    </div>
+
+                    <!-- Chat Main -->
+                    <div class="chat-main col-span-3">
+                        <div id="chatHeader" class="bg-gray-50 px-4 py-3 border-b">
+                            <h4 class="font-medium text-gray-900">Select a chat room</h4>
+                        </div>
+                        
+                        <div id="chatMessages" class="chat-messages">
+                            <div class="text-center text-gray-500 mt-8">
+                                <i class="fas fa-comments text-4xl mb-4"></i>
+                                <p>Select a chat room to start messaging</p>
+                            </div>
+                        </div>
+                        
+                        <div id="chatInput" class="chat-input hidden">
+                            <div class="flex space-x-2">
+                                <input type="text" id="messageInput" placeholder="Type your message..." class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compose Message Modal -->
+<div id="composeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto compose-modal bg-white rounded-lg shadow-xl">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Compose Message</h3>
+            <button onclick="closeComposeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="composeForm" class="px-6 py-4">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Recipients</label>
+                <input type="text" id="recipientSearch" placeholder="Search users..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div id="recipientSuggestions" class="mt-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md hidden"></div>
+                <div id="selectedRecipients" class="mt-2 flex flex-wrap gap-2"></div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                <input type="text" id="messageSubject" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                <select id="messagePriority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                <textarea id="messageContent" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+                <div id="attachmentDrop" class="attachment-preview">
+                    <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-600">Drag files here or click to browse</p>
+                    <input type="file" id="attachmentInput" multiple class="hidden">
+                </div>
+                <div id="attachmentList" class="mt-2"></div>
+            </div>
+        </form>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+            <button onclick="closeComposeModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                Cancel
+            </button>
+            <button onclick="sendMessage()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Send Message
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="text-gray-700">Loading...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+// Communication Center JavaScript
+class CommunicationCenter {
+    constructor() {
+        this.currentFolder = 'inbox';
+        this.currentPage = 1;
+        this.selectedRecipients = [];
+        this.socket = null;
+        this.currentChatRoom = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.loadOverviewStats();
+        this.loadMessages('inbox');
+        this.setupEventListeners();
+        this.initializeWebSocket();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            this.loadOverviewStats();
+            if (this.currentFolder === 'inbox') {
+                this.loadMessages('inbox', 1, false);
+            }
+        }, 30000);
+    }
+    
+    setupEventListeners() {
+        // Recipient search
+        const recipientSearch = document.getElementById('recipientSearch');
+        if (recipientSearch) {
+            recipientSearch.addEventListener('input', this.debounce(this.searchUsers.bind(this), 300));
+        }
+        
+        // File attachment
+        const attachmentInput = document.getElementById('attachmentInput');
+        const attachmentDrop = document.getElementById('attachmentDrop');
+        
+        if (attachmentInput && attachmentDrop) {
+            attachmentDrop.addEventListener('click', () => attachmentInput.click());
+            attachmentInput.addEventListener('change', this.handleFileSelect.bind(this));
+            
+            // Drag and drop
+            attachmentDrop.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                attachmentDrop.classList.add('dragover');
+            });
+            
+            attachmentDrop.addEventListener('dragleave', () => {
+                attachmentDrop.classList.remove('dragover');
+            });
+            
+            attachmentDrop.addEventListener('drop', (e) => {
+                e.preventDefault();
+                attachmentDrop.classList.remove('dragover');
+                this.handleFileSelect(e);
+            });
+        }
+        
+        // Chat message input
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.sendChatMessage();
+                }
+            });
+        }
+    }
+    
+    initializeWebSocket() {
+        // Initialize Socket.IO for real-time updates
+        this.socket = io();
+        
+        this.socket.on('new_message', (data) => {
+            this.handleNewMessage(data);
+        });
+        
+        this.socket.on('new_notification', (data) => {
+            this.handleNewNotification(data);
+        });
+        
+        this.socket.on('chat_message', (data) => {
+            this.handleChatMessage(data);
+        });
+    }
+    
+    async loadOverviewStats() {
+        try {
+            const response = await fetch('/api/communication/stats/overview');
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('unreadBadge').textContent = data.stats.unread_messages;
+                document.getElementById('notificationsBadge').textContent = data.stats.unread_notifications;
+                
+                // Hide badges if count is 0
+                if (data.stats.unread_messages === 0) {
+                    document.getElementById('unreadBadge').style.display = 'none';
+                } else {
+                    document.getElementById('unreadBadge').style.display = 'inline-block';
+                }
+                
+                if (data.stats.unread_notifications === 0) {
+                    document.getElementById('notificationsBadge').style.display = 'none';
+                } else {
+                    document.getElementById('notificationsBadge').style.display = 'inline-block';
+                }
+            }
+        } catch (error) {
+            console.error('Error loading overview stats:', error);
+        }
+    }
+    
+    async loadMessages(folder = 'inbox', page = 1, showLoading = true) {
+        if (showLoading) this.showLoading();
+        
+        try {
+            const response = await fetch(`/api/communication/messages?folder=${folder}&page=${page}&per_page=20`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.currentFolder = folder;
+                this.currentPage = page;
+                this.renderMessages(data.messages);
+                this.renderPagination(data.pagination, 'messagesPagination');
+                
+                // Update folder title
+                document.getElementById('folderTitle').textContent = folder.charAt(0).toUpperCase() + folder.slice(1);
+                
+                // Update folder buttons
+                document.querySelectorAll('.folder-btn').forEach(btn => btn.classList.remove('active'));
+                event?.target?.classList.add('active');
+            } else {
+                this.showNotification('Error loading messages: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error loading messages: ' + error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    renderMessages(messages) {
+        const container = document.getElementById('messagesList');
+        
+        if (messages.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                    <p>No messages in this folder</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = messages.map(message => `
+            <div class="message-item ${!message.is_read ? 'message-unread' : ''} p-4 border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow" onclick="openMessage('${message.id}')">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="font-medium text-gray-900">${message.sender ? message.sender.name : 'System'}</span>
+                            ${message.priority === 'high' ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">High Priority</span>' : ''}
+                            ${message.priority === 'urgent' ? '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Urgent</span>' : ''}
+                            ${!message.is_read ? '<span class="w-3 h-3 bg-blue-500 rounded-full"></span>' : ''}
+                        </div>
+                        <h4 class="font-medium text-gray-900 mb-1">${message.subject}</h4>
+                        <p class="text-gray-600 text-sm line-clamp-2">${message.content.substring(0, 150)}${message.content.length > 150 ? '...' : ''}</p>
+                    </div>
+                    <div class="flex flex-col items-end space-y-1">
+                        <span class="text-xs text-gray-500">${this.formatDate(message.created_at)}</span>
+                        ${message.attachments && message.attachments.length > 0 ? '<i class="fas fa-paperclip text-gray-400"></i>' : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async searchUsers() {
+        const query = document.getElementById('recipientSearch').value.trim();
+        
+        if (query.length < 2) {
+            document.getElementById('recipientSuggestions').classList.add('hidden');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/communication/users/search?q=${encodeURIComponent(query)}&limit=10`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderUserSuggestions(data.users);
+            }
+        } catch (error) {
+            console.error('Error searching users:', error);
+        }
+    }
+    
+    renderUserSuggestions(users) {
+        const container = document.getElementById('recipientSuggestions');
+        
+        if (users.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+        
+        container.innerHTML = users.map(user => `
+            <div class="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" onclick="addRecipient(${user.id}, '${user.name}', '${user.role}')">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <span class="text-xs font-medium">${user.name.charAt(0)}</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">${user.name}</p>
+                        <p class="text-xs text-gray-500">${user.role} • ${user.email}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        container.classList.remove('hidden');
+    }
+    
+    addRecipient(id, name, role) {
+        // Check if already selected
+        if (this.selectedRecipients.some(r => r.id === id)) {
+            return;
+        }
+        
+        this.selectedRecipients.push({ id, name, role });
+        this.renderSelectedRecipients();
+        
+        // Clear search
+        document.getElementById('recipientSearch').value = '';
+        document.getElementById('recipientSuggestions').classList.add('hidden');
+    }
+    
+    renderSelectedRecipients() {
+        const container = document.getElementById('selectedRecipients');
+        
+        container.innerHTML = this.selectedRecipients.map(recipient => `
+            <span class="recipient-tag">
+                ${recipient.name} (${recipient.role})
+                <button onclick="removeRecipient(${recipient.id})" class="ml-2 text-blue-700 hover:text-blue-900">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </span>
+        `).join('');
+    }
+    
+    removeRecipient(id) {
+        this.selectedRecipients = this.selectedRecipients.filter(r => r.id !== id);
+        this.renderSelectedRecipients();
+    }
+    
+    async sendMessage() {
+        if (this.selectedRecipients.length === 0) {
+            this.showNotification('Please select at least one recipient', 'error');
+            return;
+        }
+        
+        const subject = document.getElementById('messageSubject').value.trim();
+        const content = document.getElementById('messageContent').value.trim();
+        const priority = document.getElementById('messagePriority').value;
+        
+        if (!subject || !content) {
+            this.showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        this.showLoading();
+        
+        try {
+            const response = await fetch('/api/communication/messages/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    recipient_ids: this.selectedRecipients.map(r => r.id),
+                    subject: subject,
+                    content: content,
+                    priority: priority,
+                    message_type: 'personal'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Message sent successfully!', 'success');
+                this.closeComposeModal();
+                
+                // Refresh sent folder if current
+                if (this.currentFolder === 'sent') {
+                    this.loadMessages('sent');
+                }
+            } else {
+                this.showNotification('Error sending message: ' + data.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error sending message: ' + error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    async markMessageRead(messageId) {
+        try {
+            await fetch(`/api/communication/messages/${messageId}/read`, {
+                method: 'POST'
+            });
+            
+            // Update UI
+            this.loadOverviewStats();
+        } catch (error) {
+            console.error('Error marking message as read:', error);
+        }
+    }
+    
+    // Forum methods
+    async loadForumPosts(category = null, page = 1) {
+        this.showLoading();
+        
+        try {
+            let url = `/api/communication/forum/posts?page=${page}&per_page=10&sort_by=latest`;
+            if (category) {
+                url += `&category=${category}`;
+            }
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderForumPosts(data.posts);
+                this.renderPagination(data.pagination, 'forumPagination');
+                
+                // Update category buttons
+                document.querySelectorAll('.forum-category-btn').forEach(btn => btn.classList.remove('active', 'bg-blue-100', 'text-blue-700'));
+                event?.target?.classList.add('active', 'bg-blue-100', 'text-blue-700');
+            }
+        } catch (error) {
+            this.showNotification('Error loading forum posts: ' + error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    renderForumPosts(posts) {
+        const container = document.getElementById('forumPosts');
+        
+        if (posts.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-comments text-4xl mb-4"></i>
+                    <p>No forum posts yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = posts.map(post => `
+            <div class="forum-post p-6">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">${post.title}</h3>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            <span><i class="fas fa-user mr-1"></i>${post.author ? post.author.name : 'Anonymous'}</span>
+                            <span><i class="fas fa-calendar mr-1"></i>${this.formatDate(post.created_at)}</span>
+                            <span><i class="fas fa-eye mr-1"></i>${post.views} views</span>
+                            <span><i class="fas fa-thumbs-up mr-1"></i>${post.likes} likes</span>
+                            <span><i class="fas fa-comments mr-1"></i>${post.replies_count} replies</span>
+                        </div>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${post.category}</span>
+                </div>
+                
+                <p class="text-gray-700 mb-3">${post.content}</p>
+                
+                ${post.tags.length > 0 ? `
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        ${post.tags.map(tag => `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">#${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
+                
+                <div class="flex justify-between items-center">
+                    <button onclick="viewForumPost('${post.id}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                        View Discussion
+                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="likeForumPost('${post.id}')" class="text-gray-500 hover:text-blue-600">
+                            <i class="fas fa-thumbs-up"></i>
+                        </button>
+                        <button onclick="replyToForumPost('${post.id}')" class="text-gray-500 hover:text-green-600">
+                            <i class="fas fa-reply"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Notification methods
+    async loadNotifications(unreadOnly = false, page = 1) {
+        this.showLoading();
+        
+        try {
+            const response = await fetch(`/api/communication/notifications?unread_only=${unreadOnly}&page=${page}&per_page=20`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderNotifications(data.notifications);
+                this.renderPagination(data.pagination, 'notificationsPagination');
+            }
+        } catch (error) {
+            this.showNotification('Error loading notifications: ' + error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    renderNotifications(notifications) {
+        const container = document.getElementById('notificationsList');
+        
+        if (notifications.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-bell text-4xl mb-4"></i>
+                    <p>No notifications</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${!notification.is_read ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-white'} p-4 border border-gray-200 rounded-lg" onclick="markNotificationRead('${notification.id}')">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <h4 class="font-medium text-gray-900">${notification.title}</h4>
+                            ${!notification.is_read ? '<span class="w-3 h-3 bg-blue-500 rounded-full"></span>' : ''}
+                        </div>
+                        <p class="text-gray-700 mb-2">${notification.message}</p>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            <span><i class="fas fa-tag mr-1"></i>${notification.category}</span>
+                            <span><i class="fas fa-clock mr-1"></i>${this.formatDate(notification.created_at)}</span>
+                        </div>
+                    </div>
+                    ${notification.action_url ? `
+                        <button onclick="window.open('${notification.action_url}', '_blank')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                            View
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async markNotificationRead(notificationId) {
+        try {
+            await fetch(`/api/communication/notifications/${notificationId}/read`, {
+                method: 'POST'
+            });
+            
+            this.loadOverviewStats();
+            this.loadNotifications();
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+    
+    // Utility methods
+    renderPagination(pagination, containerId) {
+        const container = document.getElementById(containerId);
+        
+        if (pagination.pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let paginationHTML = '<div class="flex justify-center space-x-2">';
+        
+        // Previous button
+        if (pagination.has_prev) {
+            paginationHTML += `<button onclick="loadPage(${pagination.page - 1})" class="px-3 py-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Previous</button>`;
+        }
+        
+        // Page numbers
+        for (let i = Math.max(1, pagination.page - 2); i <= Math.min(pagination.pages, pagination.page + 2); i++) {
+            if (i === pagination.page) {
+                paginationHTML += `<button class="px-3 py-2 text-white bg-blue-600 border border-blue-600 rounded-md">${i}</button>`;
+            } else {
+                paginationHTML += `<button onclick="loadPage(${i})" class="px-3 py-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">${i}</button>`;
+            }
+        }
+        
+        // Next button
+        if (pagination.has_next) {
+            paginationHTML += `<button onclick="loadPage(${pagination.page + 1})" class="px-3 py-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Next</button>`;
+        }
+        
+        paginationHTML += '</div>';
+        container.innerHTML = paginationHTML;
+    }
+    
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (diffDays === 1) {
+            return 'Yesterday';
+        } else if (diffDays < 7) {
+            return `${diffDays} days ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+    
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    showLoading() {
+        document.getElementById('loadingSpinner').classList.remove('hidden');
+    }
+    
+    hideLoading() {
+        document.getElementById('loadingSpinner').classList.add('hidden');
+    }
+    
+    showNotification(message, type = 'info') {
+        const notificationBar = document.getElementById('notificationBar');
+        const notificationText = document.getElementById('notificationText');
+        
+        notificationText.textContent = message;
+        
+        // Update styling based on type
+        notificationBar.className = 'bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6';
+        if (type === 'success') {
+            notificationBar.className = 'bg-green-50 border border-green-200 rounded-lg p-4 mb-6';
+        } else if (type === 'error') {
+            notificationBar.className = 'bg-red-50 border border-red-200 rounded-lg p-4 mb-6';
+        }
+        
+        notificationBar.classList.remove('hidden');
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            notificationBar.classList.add('hidden');
+        }, 5000);
+    }
+    
+    hideNotification() {
+        document.getElementById('notificationBar').classList.add('hidden');
+    }
+    
+    openComposeModal() {
+        document.getElementById('composeModal').classList.remove('hidden');
+        this.selectedRecipients = [];
+        this.renderSelectedRecipients();
+        
+        // Clear form
+        document.getElementById('composeForm').reset();
+    }
+    
+    closeComposeModal() {
+        document.getElementById('composeModal').classList.add('hidden');
+        this.selectedRecipients = [];
+    }
+    
+    handleFileSelect(event) {
+        const files = event.target.files || event.dataTransfer.files;
+        // Handle file attachments here
+        console.log('Files selected:', files);
+    }
+    
+    // Event handlers for real-time updates
+    handleNewMessage(data) {
+        // Update unread count
+        this.loadOverviewStats();
+        
+        // If viewing inbox, refresh
+        if (this.currentFolder === 'inbox') {
+            this.loadMessages('inbox', 1, false);
+        }
+        
+        // Show notification
+        this.showNotification(`New message from ${data.sender_name}: ${data.subject}`, 'info');
+    }
+    
+    handleNewNotification(data) {
+        this.loadOverviewStats();
+        this.showNotification(data.title, 'info');
+    }
+    
+    handleChatMessage(data) {
+        if (this.currentChatRoom === data.room_id) {
+            this.appendChatMessage(data);
+        }
+    }
+}
+
+// Global functions for template events
+let communicationCenter;
+
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Tab').classList.remove('hidden');
+    event.target.classList.add('active', 'border-blue-500', 'text-blue-600');
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+    
+    // Load content for the tab
+    switch(tabName) {
+        case 'messages':
+            communicationCenter.loadMessages('inbox');
+            break;
+        case 'forum':
+            communicationCenter.loadForumPosts();
+            break;
+        case 'notifications':
+            communicationCenter.loadNotifications();
+            break;
+        case 'announcements':
+            // Load announcements
+            break;
+        case 'chat':
+            // Load chat rooms
+            break;
+    }
+}
+
+function loadMessages(folder) {
+    communicationCenter.loadMessages(folder);
+}
+
+function refreshMessages() {
+    communicationCenter.loadMessages(communicationCenter.currentFolder, 1);
+}
+
+function openComposeModal() {
+    communicationCenter.openComposeModal();
+}
+
+function closeComposeModal() {
+    communicationCenter.closeComposeModal();
+}
+
+function addRecipient(id, name, role) {
+    communicationCenter.addRecipient(id, name, role);
+}
+
+function removeRecipient(id) {
+    communicationCenter.removeRecipient(id);
+}
+
+function sendMessage() {
+    communicationCenter.sendMessage();
+}
+
+function hideNotification() {
+    communicationCenter.hideNotification();
+}
+
+function loadPage(page) {
+    const activeTab = document.querySelector('.tab-button.active').textContent.toLowerCase().trim();
+    
+    if (activeTab.includes('messages')) {
+        communicationCenter.loadMessages(communicationCenter.currentFolder, page);
+    } else if (activeTab.includes('forum')) {
+        communicationCenter.loadForumPosts(null, page);
+    } else if (activeTab.includes('notifications')) {
+        communicationCenter.loadNotifications(false, page);
+    }
+}
+
+function openMessage(messageId) {
+    // Mark as read and open message detail
+    communicationCenter.markMessageRead(messageId);
+    // Could open a modal or navigate to message detail page
+}
+
+function loadForumPosts(category) {
+    communicationCenter.loadForumPosts(category);
+}
+
+function loadNotifications(unreadOnly) {
+    communicationCenter.loadNotifications(unreadOnly);
+}
+
+function markNotificationRead(notificationId) {
+    communicationCenter.markNotificationRead(notificationId);
+}
+
+function markAllNotificationsRead() {
+    // Implementation for marking all notifications as read
+}
+
+function openAnnouncementModal() {
+    // Implementation for opening announcement creation modal
+}
+
+function openForumPostModal() {
+    // Implementation for opening forum post creation modal
+}
+
+function viewForumPost(postId) {
+    // Implementation for viewing forum post details
+}
+
+function likeForumPost(postId) {
+    // Implementation for liking forum posts
+}
+
+function replyToForumPost(postId) {
+    // Implementation for replying to forum posts
+}
+
+function createChatRoom() {
+    // Implementation for creating chat rooms
+}
+
+function sendChatMessage() {
+    // Implementation for sending chat messages
+}
+
+// Initialize communication center when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    communicationCenter = new CommunicationCenter();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends "base/layout.html" %}
+{% block title %}User Management - SACEL{% endblock %}
+
+{% block dashboard_content %}
+<div class="bg-white shadow">
+    <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+        <div class="py-6 md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    User Management
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    Manage system users, roles, and permissions
+                </p>
+            </div>
+            <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+            <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700">Search Users</label>
+                    <input type="text" name="search" id="search" value="{{ current_filters.search }}" 
+                           placeholder="Name or email..."
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+                    <select name="role" id="role" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">All Roles</option>
+                        {% for role in UserRole %}
+                            <option value="{{ role.value }}" {% if current_filters.role == role.value %}selected{% endif %}>
+                                {{ role.value.replace('_', ' ').title() }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                {% if current_user.role.value == 'system_admin' %}
+                <div>
+                    <label for="school" class="block text-sm font-medium text-gray-700">School</label>
+                    <select name="school" id="school" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">All Schools</option>
+                        {% for school in schools %}
+                            <option value="{{ school.id }}" {% if current_filters.school == school.id|string %}selected{% endif %}>
+                                {{ school.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="min-w-full divide-y divide-gray-200">
+            <div class="bg-gray-50 px-6 py-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Users ({{ users.total }} total)
+                </h3>
+            </div>
+            
+            {% if users.items %}
+            <div class="bg-white divide-y divide-gray-200">
+                {% for user in users.items %}
+                <div class="px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                                    <span class="text-sm font-medium text-white">
+                                        {{ user.first_name[0] }}{{ user.last_name[0] }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ user.full_name }}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    {{ user.email }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <div class="text-sm text-gray-900">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if user.role.value == 'system_admin' %}bg-purple-100 text-purple-800
+                                        {% elif user.role.value == 'school_admin' %}bg-blue-100 text-blue-800
+                                        {% elif user.role.value == 'principal' %}bg-indigo-100 text-indigo-800
+                                        {% elif user.role.value == 'teacher' %}bg-green-100 text-green-800
+                                        {% elif user.role.value == 'student' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ user.role.value.replace('_', ' ').title() }}
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    {{ user.school.name if user.school else 'No school assigned' }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                {% if user.is_active %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                                
+                                <div class="relative">
+                                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="toggleUserMenu({{ user.id }})">
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    <div id="user-menu-{{ user.id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                        <div class="py-1">
+                                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Profile</a>
+                                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit User</a>
+                                            {% if user.is_active %}
+                                                <a href="#" class="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100">Deactivate</a>
+                                            {% else %}
+                                                <a href="#" class="block px-4 py-2 text-sm text-green-700 hover:bg-gray-100">Activate</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0a3 3 0 01-3-3.5M3 13.5a3 3 0 003-3.5"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+                <p class="mt-1 text-sm text-gray-500">Try adjusting your search criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if users.pages > 1 %}
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+            {% if users.has_prev %}
+                <a href="{{ url_for('admin.users', page=users.prev_num, **current_filters) }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Previous
+                </a>
+            {% endif %}
+            {% if users.has_next %}
+                <a href="{{ url_for('admin.users', page=users.next_num, **current_filters) }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Next
+                </a>
+            {% endif %}
+        </div>
+        
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing {{ ((users.page - 1) * users.per_page + 1) }} to {{ (users.page * users.per_page if users.page * users.per_page < users.total else users.total) }} of {{ users.total }} results
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    {% if users.has_prev %}
+                        <a href="{{ url_for('admin.users', page=users.prev_num, **current_filters) }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    {% for page_num in users.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != users.page %}
+                                <a href="{{ url_for('admin.users', page=page_num, **current_filters) }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ page_num }}
+                                </a>
+                            {% else %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                                    {{ page_num }}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                ...
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if users.has_next %}
+                        <a href="{{ url_for('admin.users', page=users.next_num, **current_filters) }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleUserMenu(userId) {
+    const menu = document.getElementById(`user-menu-${userId}`);
+    menu.classList.toggle('hidden');
+    
+    // Close other menus
+    document.querySelectorAll('[id^="user-menu-"]').forEach(otherMenu => {
+        if (otherMenu.id !== `user-menu-${userId}`) {
+            otherMenu.classList.add('hidden');
+        }
+    });
+}
+
+// Close menus when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('[onclick*="toggleUserMenu"]')) {
+        document.querySelectorAll('[id^="user-menu-"]').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
+});
+</script>
+{% endblock %}
