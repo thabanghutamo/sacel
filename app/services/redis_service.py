@@ -22,23 +22,14 @@ class RedisService:
         """Check if Redis is available."""
         try:
             if self.redis:
-                # Set a short timeout to avoid hanging
                 self.redis.ping()
                 self.redis_available = True
-                # Use ASCII-only messages to avoid UnicodeEncodeError on some Windows consoles
-                print("Redis connection successful")
-        except Exception as e:
+        except Exception:
             self.redis_available = False
-            # Avoid printing emoji to prevent encoding errors in Windows console
-            print(f"Redis not available: {str(e)[:100]}")
-            print("Running in fallback mode without Redis caching")
-            print(f"Redis not available: {str(e)[:100]} - continuing without Redis")
     
     # Session Management
     def get_user_session_data(self, user_id: int, key: str) -> Optional[Any]:
         """Get user-specific session data."""
-        if not self.redis_available:
-            return None
         session_key = f"user:{user_id}:session:{key}"
         try:
             data = self.redis.get(session_key)
@@ -49,8 +40,6 @@ class RedisService:
     def set_user_session_data(self, user_id: int, key: str, value: Any, 
                              expire: int = 3600) -> bool:
         """Set user-specific session data with expiration."""
-        if not self.redis_available:
-            return False
         session_key = f"user:{user_id}:session:{key}"
         try:
             serialized_data = pickle.dumps(value)

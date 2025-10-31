@@ -37,16 +37,11 @@ def dashboard():
 @login_required  
 def assignments():
     """View all assignments for student"""
-    # Get all assignments for the student's school (temporary workaround for missing columns)
-    try:
-        assignments = Assignment.query.join(School)\
-            .filter(Assignment.school_id == current_user.school_id)\
-            .filter(Assignment.is_published == True)\
-            .order_by(Assignment.due_date.desc()).all()
-    except AttributeError:
-        # Fallback if school_id or is_published columns don't exist yet
-        assignments = Assignment.query.filter(Assignment.is_active == True)\
-            .order_by(Assignment.due_date.desc()).limit(10).all()
+    # Get all assignments for the student's school
+    assignments = Assignment.query.join(School)\
+        .filter(Assignment.school_id == current_user.school_id)\
+        .filter(Assignment.is_published == True)\
+        .order_by(Assignment.due_date.desc()).all()
     
     # Get submissions for these assignments
     submission_dict = {}
@@ -58,11 +53,9 @@ def assignments():
         ).all()
         submission_dict = {s.assignment_id: s for s in submissions}
     
-    from datetime import datetime
     return render_template('students/assignments.html', 
                           assignments=assignments,
-                          submissions=submission_dict,
-                          now=datetime.now())
+                          submissions=submission_dict)
 
 @bp.route('/assignments/<int:assignment_id>')
 @login_required
@@ -70,23 +63,14 @@ def view_assignment(assignment_id):
     """View specific assignment details"""
     assignment = Assignment.query.get_or_404(assignment_id)
     
-    # Check if student belongs to same school as assignment (if school_id exists)
-    try:
-        if hasattr(assignment, 'school_id') and assignment.school_id != current_user.school_id:
-            flash('Assignment not found.', 'error')
-            return redirect(url_for('students.assignments'))
-    except AttributeError:
-        # school_id column doesn't exist yet, skip check
-        pass
-
-    # Check if assignment is published (if is_published exists)
-    try:
-        if hasattr(assignment, 'is_published') and not assignment.is_published:
-            flash('Assignment is not yet available.', 'warning')
-            return redirect(url_for('students.assignments'))
-    except AttributeError:
-        # is_published column doesn't exist yet, skip check
-        pass
+    # Check if student belongs to same school as assignment
+    if assignment.school_id != current_user.school_id:
+        flash('Assignment not found.', 'error')
+        return redirect(url_for('students.assignments'))
+    
+    if not assignment.is_published:
+        flash('Assignment is not yet available.', 'warning')
+        return redirect(url_for('students.assignments'))
     
     # Get existing submission if any
     submission = Submission.query.filter_by(
@@ -96,9 +80,9 @@ def view_assignment(assignment_id):
     
     # Parse questions from assignment
     questions = []
-    if assignment.ai_generated_content:
+    if assignment.question_config:
         try:
-            question_data = json.loads(assignment.ai_generated_content)
+            question_data = json.loads(assignment.question_config)
             questions = question_data.get('questions', [])
         except (json.JSONDecodeError, AttributeError):
             questions = []
@@ -106,8 +90,7 @@ def view_assignment(assignment_id):
     return render_template('students/assignment_detail.html',
                           assignment=assignment,
                           submission=submission,
-                          questions=questions,
-                          now=datetime.now())
+                          questions=questions)
 
 @bp.route('/assignments/<int:assignment_id>/submit', methods=['GET', 'POST'])
 @login_required

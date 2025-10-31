@@ -1,7 +1,7 @@
 {% extends "base/layout.html" %}
 {% block title %}{{ assignment.title }} - SACEL{% endblock %}
 
-{% block dashboard_content %}
+{% block content %}
 <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <div class="bg-white shadow">
@@ -19,11 +19,13 @@
                                 <div class="mt-1 flex items-center text-sm text-gray-500">
                                     <span>{{ assignment.subject }}</span>
                                     <span class="mx-2">•</span>
-                                    <span>{{ translate_term('grade') or 'Grade' }} {{ assignment.grade_level }}</span>
-                                    {% if assignment.ai_generated_content %}
+                                    <span>{{ translate_term('grade') }} {{ assignment.grade }}</span>
+                                    <span class="mx-2">•</span>
+                                    <span>{{ assignment.assignment_type.title() }}</span>
+                                    {% if assignment.ai_generated %}
                                         <span class="mx-2">•</span>
                                         <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                            <i class="fas fa-robot mr-1"></i>{{ translate_term('ai_generated') or 'AI Generated' }}
+                                            <i class="fas fa-robot mr-1"></i>{{ translate_term('ai_generated') }}
                                         </span>
                                     {% endif %}
                                 </div>
@@ -45,7 +47,7 @@
                                 </span>
                             {% endif %}
                         {% else %}
-                            {% set is_overdue = assignment.due_date < now %}
+                            {% set is_overdue = assignment.due_date < moment().utc %}
                             {% if not is_overdue %}
                                 <a href="{{ url_for('students.submit_assignment', assignment_id=assignment.id) }}" 
                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
@@ -211,17 +213,17 @@
                     
                     <dl class="space-y-4">
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ translate_term('assigned_date') or 'Assigned Date' }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ assignment.created_at.strftime('%B %d, %Y') }}</dd>
+                            <dt class="text-sm font-medium text-gray-500">{{ translate_term('assigned_date') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ assignment.assigned_date.strftime('%B %d, %Y') }}</dd>
                         </div>
                         
                         <div>
                             <dt class="text-sm font-medium text-gray-500">{{ translate_term('due_date') }}</dt>
                             <dd class="mt-1 text-sm text-gray-900">
                                 {{ assignment.due_date.strftime('%B %d, %Y at %I:%M %p') }}
-                                {% set is_overdue = assignment.due_date < now %}
+                                {% set is_overdue = assignment.due_date < moment().utc %}
                                 {% if is_overdue %}
-                                    <span class="text-red-600 font-medium">({{ translate_term('overdue') or 'Overdue' }})</span>
+                                    <span class="text-red-600 font-medium">({{ translate_term('overdue') }})</span>
                                 {% endif %}
                             </dd>
                         </div>
@@ -254,15 +256,15 @@
                     <h3 class="text-lg font-medium text-gray-900 mb-4">{{ translate_term('actions') }}</h3>
                     
                     <div class="space-y-3">
-                        {% if not submission and assignment.due_date > now %}
+                        {% if not submission and assignment.due_date > moment().utc %}
                             <a href="{{ url_for('students.submit_assignment', assignment_id=assignment.id) }}" 
                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                                <i class="fas fa-play mr-2"></i>{{ translate_term('start_assignment') or 'Start Assignment' }}
+                                <i class="fas fa-play mr-2"></i>{{ translate_term('start_assignment') }}
                             </a>
-                        {% elif submission and submission.status == 'draft' and assignment.due_date > now %}
+                        {% elif submission and submission.status == 'draft' and assignment.due_date > moment().utc %}
                             <a href="{{ url_for('students.submit_assignment', assignment_id=assignment.id) }}" 
                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
-                                <i class="fas fa-edit mr-2"></i>{{ translate_term('continue_assignment') or 'Continue Assignment' }}
+                                <i class="fas fa-edit mr-2"></i>{{ translate_term('continue_assignment') }}
                             </a>
                         {% endif %}
                         
@@ -393,7 +395,7 @@ function askAI() {
         body: JSON.stringify({
             question: question,
             subject: '{{ assignment.subject }}',
-            grade_level: {{ assignment.grade_level }},
+            grade_level: {{ assignment.grade }},
             context: 'Assignment: {{ assignment.title }}'
         })
     })

@@ -2,10 +2,7 @@
 
 {% block title %}Student Progress Dashboard - SACEL{% endblock %}
 
-{% block page_title %}Progress Dashboard{% endblock %}
-{% block page_subtitle %}Track your learning progress and performance{% endblock %}
-
-{% block extra_head %}
+{% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
 <style>
@@ -56,15 +53,7 @@
 </style>
 {% endblock %}
 
-{% block dashboard_content %}
-<!-- Debug Information -->
-<div class="content-debug mb-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-2">Progress Dashboard Debug</h2>
-    <p class="text-gray-600">Student ID: {{ student_id if student_id else 'Not provided' }}</p>
-    <p class="text-gray-600">Current User: {{ current_user.first_name }} {{ current_user.last_name }}</p>
-    <p class="text-gray-600">User Role: {{ current_user.role.value if current_user.role else 'No role' }}</p>
-</div>
-
+{% block content %}
 <div class="container mx-auto px-4 py-8">
     <!-- Page Header -->
     <div class="mb-8">

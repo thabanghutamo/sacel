@@ -153,14 +153,12 @@ class Assignment(db.Model):
     description = db.Column(db.Text)
     subject = db.Column(db.String(100), nullable=False)
     grade_level = db.Column(db.Integer, nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     instructions = db.Column(db.Text)
     attachment_url = db.Column(db.String(500))
     due_date = db.Column(db.DateTime, nullable=False)
     max_score = db.Column(db.Integer, default=100)
     is_active = db.Column(db.Boolean, default=True)
-    is_published = db.Column(db.Boolean, default=False)
     ai_generated_content = db.Column(db.Text)  # JSON string for AI-generated questions/content
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -181,7 +179,6 @@ class Submission(db.Model):
     content = db.Column(db.Text)
     attachment_url = db.Column(db.String(500))
     grade = db.Column(db.Float, nullable=True)
-    percentage = db.Column(db.Float, nullable=True)  # Grade as percentage
     feedback = db.Column(db.Text)
     status = db.Column(db.Enum('draft', 'submitted', 'graded', name='submission_status'), default='draft')
     submitted_at = db.Column(db.DateTime, nullable=True)

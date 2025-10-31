@@ -1,23 +1,32 @@
 {% extends "base/layout.html" %}
-
 {% block title %}{{ translate_term('my_assignments') }} - SACEL{% endblock %}
 
-{% block dashboard_content %}
-<!-- Debug Information -->
-<div class="content-debug mb-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-2">Assignments Debug Info</h2>
-    <p class="text-gray-600">
-        Total assignments found: {{ assignments|length if assignments else 0 }}
-    </p>
-    <p class="text-gray-600">
-        Submissions dict keys: {{ submissions.keys()|list if submissions else 'None' }}
-    </p>
-    {% if assignments %}
-        <p class="text-gray-600">First assignment: {{ assignments[0].title if assignments[0] else 'None' }}</p>
-    {% endif %}
-</div>
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div class="py-6 md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        <i class="fas fa-clipboard-list mr-2 text-blue-600"></i>
+                        {{ translate_term('my_assignments') }}
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        {{ translate_term('view_submit_assignments') }}
+                    </p>
+                </div>
+                <div class="mt-6 flex space-x-3 md:mt-0 md:ml-4">
+                    <a href="{{ url_for('students.dashboard') }}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>{{ translate_term('back_to_dashboard') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- Stats Bar -->
+    <!-- Stats Bar -->
     {% if assignments %}
     <div class="max-w-6xl mx-auto mt-6 px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-lg shadow p-4">
@@ -43,7 +52,7 @@
                 </div>
                 
                 <!-- Average Score -->
-                {% set graded = submissions.values()|selectattr('percentage')|list %}
+                {% set graded = submitted|selectattr('id', 'in', submissions.keys())|map('extract', submissions)|selectattr('percentage')|list %}
                 <div class="text-center">
                     {% if graded %}
                         {% set avg_score = (graded|sum(attribute='percentage') / graded|length)|round(1) %}
@@ -91,7 +100,7 @@
                         <select id="sortOrder" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="due_date_asc">{{ translate_term('due_date_earliest') }}</option>
                             <option value="due_date_desc">{{ translate_term('due_date_latest') }}</option>
-                            <option value="assigned_date_desc">{{ translate_term('recently_assigned') or 'Recently Created' }}</option>
+                            <option value="assigned_date_desc">{{ translate_term('recently_assigned') }}</option>
                             <option value="title_asc">{{ translate_term('title_a_z') }}</option>
                         </select>
                     </div>
@@ -102,14 +111,14 @@
             <div id="assignmentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for assignment in assignments %}
                     {% set submission = submissions.get(assignment.id) %}
-                    {% set is_overdue = assignment.due_date and assignment.due_date.date() < (now.date() if now else assignment.due_date.date()) %}
+                    {% set is_overdue = assignment.due_date < moment().utc %}
                     {% set status = 'overdue' if (is_overdue and not submission) else ('graded' if (submission and submission.percentage is not none) else ('submitted' if submission else 'pending')) %}
                     
                     <div class="assignment-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer" 
                          data-status="{{ status }}" 
                          data-subject="{{ assignment.subject }}" 
                          data-due-date="{{ assignment.due_date.isoformat() }}"
-                         data-assigned-date="{{ assignment.created_at.isoformat() }}"
+                         data-assigned-date="{{ assignment.assigned_date.isoformat() }}"
                          data-title="{{ assignment.title }}"
                          onclick="viewAssignment({{ assignment.id }})">
                         
@@ -144,16 +153,16 @@
                         
                         <!-- Assignment Content -->
                         <div class="p-4">
-                            <!-- Assignment Subject & AI Badge -->
+                            <!-- Assignment Type & AI Badge -->
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i class="fas fa-book mr-1"></i>
-                                    {{ assignment.subject }}
+                                    <i class="fas fa-{{ 'laptop-code' if assignment.assignment_type == 'project' else ('graduation-cap' if assignment.assignment_type == 'exam' else ('clipboard-check' if assignment.assignment_type == 'test' else 'book')) }} mr-1"></i>
+                                    {{ assignment.assignment_type.title() }}
                                 </span>
                                 
-                                {% if assignment.ai_generated_content %}
+                                {% if assignment.ai_generated %}
                                     <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                        <i class="fas fa-robot mr-1"></i>{{ translate_term('ai_generated') or 'AI Generated' }}
+                                        <i class="fas fa-robot mr-1"></i>{{ translate_term('ai_generated') }}
                                     </span>
                                 {% endif %}
                             </div>
@@ -167,7 +176,7 @@
                             <div class="space-y-2">
                                 <div class="flex items-center text-sm text-gray-600">
                                     <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
-                                    <span>{{ translate_term('assigned') or 'Assigned' }}: {{ assignment.created_at.strftime('%b %d, %Y') }}</span>
+                                    <span>{{ translate_term('assigned') }}: {{ assignment.assigned_date.strftime('%b %d, %Y') }}</span>
                                 </div>
                                 
                                 <div class="flex items-center text-sm {{ 'text-red-600' if is_overdue else 'text-gray-600' }}">
@@ -234,7 +243,7 @@
                 </div>
                 <h3 class="text-xl font-medium text-gray-900 mb-2">{{ translate_term('no_assignments_yet') }}</h3>
                 <p class="text-gray-600 mb-6">{{ translate_term('assignments_will_appear_here') }}</p>
-                <a href="{{ url_for('student_portal.dashboard') }}" 
+                <a href="{{ url_for('students.dashboard') }}" 
                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
                     <i class="fas fa-home mr-2"></i>{{ translate_term('return_to_dashboard') }}
                 </a>

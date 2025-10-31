@@ -2,15 +2,14 @@
 
 {% block title %}Advanced Search - SACEL Platform{% endblock %}
 
-{% block dashboard_content %}
-<!-- Debug Information -->
-<div class="content-debug mb-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-2">Search Interface Debug</h2>
-    <p class="text-gray-600">User Role: {{ current_user.role.value if current_user.role else 'No role' }}</p>
-    <p class="text-gray-600">Search functionality active</p>
-</div>
-
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">🔍 Advanced Search</h1>
+            <p class="mt-2 text-gray-600">Search across users, schools, assignments, and applications</p>
+        </div>
 
         <!-- Search Interface -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8">

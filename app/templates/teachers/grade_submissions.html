@@ -1,12 +1,12 @@
 {% extends "base/layout.html" %}
 {% block title %}Grade Assignment: {{ assignment.title }}{% endblock %}
 
-{% block dashboard_content %}
+{% block content %}
 <div class="container mx-auto px-4 py-6">
     <!-- Header -->
     <div class="mb-6">
         <div class="flex items-center space-x-4 mb-4">
-            <a href="{{ url_for('teachers.grading') }}" 
+            <a href="{{ url_for('teachers.grading_dashboard') }}" 
                class="text-indigo-600 hover:text-indigo-800 flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>

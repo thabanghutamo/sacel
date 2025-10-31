@@ -30,11 +30,6 @@ def upload():
     """File upload page"""
     return render_template('files/upload.html')
 
-@bp.route('/test-dashboard')
-def test_dashboard():
-    """Dashboard visibility test page"""
-    return render_template('test/dashboard_test.html')
-
 @bp.route('/about')
 def about():
     """About page"""

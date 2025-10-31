@@ -2,9 +2,6 @@
 
 {% block title %}File Upload - SACEL{% endblock %}
 
-{% block page_title %}File Upload{% endblock %}
-{% block page_subtitle %}Upload documents and files securely{% endblock %}
-
 {% block extra_head %}
 <style>
     .file-drop-zone {
@@ -82,14 +79,7 @@
 </style>
 {% endblock %}
 
-{% block dashboard_content %}
-<!-- Debug Information -->
-<div class="content-debug mb-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-2">File Upload Debug</h2>
-    <p class="text-gray-600">Upload functionality available</p>
-    <p class="text-gray-600">User: {{ current_user.first_name }} {{ current_user.last_name }}</p>
-</div>
-
+{% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
     <div class="bg-white rounded-xl shadow-lg p-8">
         <div class="text-center mb-8">

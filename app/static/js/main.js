@@ -1,180 +1,7 @@
-// SACEL Main JavaScript - Enhanced Dashboard Version
+// SACEL Main JavaScript
 
 // Mobile menu functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize dashboard components
-    initializeDashboard();
-    initializeMobileMenu();
-    initializeNotifications();
-    initializeSearch();
-    initializeAITools();
-    initializeAssignmentForm();
-    initializeLanguageFeatures();
-    
-    // Auto-hide flash messages after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    if (alerts.length > 0) {
-        setTimeout(function() {
-            alerts.forEach(alert => {
-                alert.style.opacity = '0';
-                alert.style.transition = 'opacity 0.3s ease-in-out';
-                setTimeout(() => {
-                    if (alert.parentNode) {
-                        alert.parentNode.removeChild(alert);
-                    }
-                }, 300);
-            });
-        }, 5000);
-    }
-});
-
-// Dashboard functionality
-function initializeDashboard() {
-    // Active navigation highlighting
-    highlightActiveNavigation();
-    
-    // Initialize profile menu
-    initializeProfileMenu();
-    
-    // Initialize sidebar toggle for mobile
-    initializeSidebarToggle();
-    
-    // Initialize tooltips
-    initializeTooltips();
-    
-    // Initialize card hover effects
-    initializeCardEffects();
-}
-
-function highlightActiveNavigation() {
-    const currentPath = window.location.pathname;
-    const navLinks = document.querySelectorAll('nav a[href]');
-    
-    navLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPath || (currentPath.startsWith(href) && href !== '/')) {
-            link.classList.add('bg-blue-50', 'text-blue-700', 'border-r-3', 'border-blue-500');
-        }
-    });
-}
-
-function initializeProfileMenu() {
-    const profileMenuBtn = document.getElementById('profileMenuBtn');
-    const profileDropdown = document.getElementById('profileDropdown');
-    
-    if (profileMenuBtn) {
-        profileMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            if (profileDropdown) {
-                profileDropdown.classList.toggle('hidden');
-            } else {
-                // Create dropdown if it doesn't exist
-                createProfileDropdown();
-            }
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function() {
-            if (profileDropdown && !profileDropdown.classList.contains('hidden')) {
-                profileDropdown.classList.add('hidden');
-            }
-        });
-    }
-}
-
-function createProfileDropdown() {
-    const profileMenuBtn = document.getElementById('profileMenuBtn');
-    if (!profileMenuBtn) return;
-    
-    const dropdown = document.createElement('div');
-    dropdown.id = 'profileDropdown';
-    dropdown.className = 'absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50';
-    dropdown.innerHTML = `
-        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
-            <i class="fas fa-user w-4 h-4 mr-3"></i>
-            Profile
-        </a>
-        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
-            <i class="fas fa-cog w-4 h-4 mr-3"></i>
-            Settings
-        </a>
-        <hr class="my-2">
-        <a href="/auth/logout" class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50">
-            <i class="fas fa-sign-out-alt w-4 h-4 mr-3"></i>
-            Logout
-        </a>
-    `;
-    
-    profileMenuBtn.parentElement.appendChild(dropdown);
-}
-
-function initializeSidebarToggle() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('sidebar-collapsed');
-            if (mainContent) {
-                mainContent.classList.toggle('sidebar-collapsed');
-            }
-        });
-    }
-}
-
-function initializeTooltips() {
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
-    
-    tooltipElements.forEach(element => {
-        element.addEventListener('mouseenter', function() {
-            showTooltip(this, this.getAttribute('data-tooltip'));
-        });
-        
-        element.addEventListener('mouseleave', function() {
-            hideTooltip();
-        });
-    });
-}
-
-function showTooltip(element, text) {
-    const tooltip = document.createElement('div');
-    tooltip.id = 'tooltip';
-    tooltip.className = 'absolute bg-gray-800 text-white text-xs rounded py-1 px-2 z-50';
-    tooltip.textContent = text;
-    
-    document.body.appendChild(tooltip);
-    
-    const rect = element.getBoundingClientRect();
-    tooltip.style.left = `${rect.left + element.offsetWidth / 2 - tooltip.offsetWidth / 2}px`;
-    tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
-}
-
-function hideTooltip() {
-    const tooltip = document.getElementById('tooltip');
-    if (tooltip) {
-        tooltip.remove();
-    }
-}
-
-function initializeCardEffects() {
-    const cards = document.querySelectorAll('.card-hover');
-    
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-4px)';
-            this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '';
-        });
-    });
-}
-
-function initializeMobileMenu() {
     const mobileMenuButton = document.querySelector('.mobile-menu-button');
     const mobileMenu = document.querySelector('.mobile-menu');
     
@@ -197,73 +24,22 @@ function initializeMobileMenu() {
             }
         });
     }
-}
-
-function initializeNotifications() {
-    // Check for new notifications periodically
-    if (typeof currentUser !== 'undefined' && currentUser.is_authenticated) {
-        setInterval(checkNotifications, 30000); // Every 30 seconds
-    }
     
-    // Initialize notification bell
-    const notificationBell = document.querySelector('.notification-bell');
-    if (notificationBell) {
-        notificationBell.addEventListener('click', function() {
-            toggleNotificationPanel();
-        });
+    // Auto-hide flash messages after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    if (alerts.length > 0) {
+        setTimeout(function() {
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.3s ease-in-out';
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 300);
+            });
+        }, 5000);
     }
-}
-
-function checkNotifications() {
-    makeRequest('/api/notifications/check')
-        .then(response => {
-            if (response.success && response.count > 0) {
-                updateNotificationBadge(response.count);
-            }
-        })
-        .catch(error => {
-            console.error('Error checking notifications:', error);
-        });
-}
-
-function updateNotificationBadge(count) {
-    const badge = document.querySelector('.notification-badge');
-    if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'block' : 'none';
-    }
-}
-
-function toggleNotificationPanel() {
-    const panel = document.getElementById('notificationPanel');
-    if (panel) {
-        panel.classList.toggle('hidden');
-    } else {
-        createNotificationPanel();
-    }
-}
-
-function createNotificationPanel() {
-    const panel = document.createElement('div');
-    panel.id = 'notificationPanel';
-    panel.className = 'absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50';
-    panel.innerHTML = `
-        <div class="p-4 border-b border-gray-200">
-            <h3 class="font-semibold text-gray-800">Notifications</h3>
-        </div>
-        <div class="max-h-64 overflow-y-auto">
-            <div class="p-4 text-center text-gray-500">
-                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                <p>No new notifications</p>
-            </div>
-        </div>
-    `;
-    
-    const notificationBell = document.querySelector('.notification-bell');
-    if (notificationBell) {
-        notificationBell.parentElement.appendChild(panel);
-    }
-}
     
     // Form validation enhancement
     const forms = document.querySelectorAll('form[data-validate]');
@@ -404,7 +180,11 @@ function performSearch(query, form) {
 }
 
 // Initialize components when DOM is ready
-// (Note: Main DOMContentLoaded listener is at the top of the file)
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSearch();
+    initializeAITools();
+    initializeAssignmentForm();
+});
 
 // AI Tools functionality
 function initializeAITools() {
